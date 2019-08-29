@@ -108,4 +108,4 @@ ENV/
 ###ADDED
 .idea
 pretrained
-training_videos
+training
