@@ -104,5 +104,8 @@ ENV/
 
 .vscode
 
+
+###ADDED
 .idea
 pretrained
+training_videos
