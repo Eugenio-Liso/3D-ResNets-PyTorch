@@ -122,7 +122,7 @@ This table shows the averaged accuracies over top-1 and top-5 on Kinetics.
 * [PyTorch](http://pytorch.org/)
 
 ```bash
-conda install pytorch torchvision cuda80 -c soumith
+conda install pandas=0.25.1 scikit-learn=0.21.2 h5py=2.9.0 pytorch=1.0.0 torchvision=0.2.1 cuda80=1.0 -c soumith
 ```
 
 * FFmpeg, FFprobe
@@ -239,7 +239,7 @@ Assume the structure of data directories is the following:
 Confirm all options.
 
 ```bash
-python main.lua -h
+python main.py -h
 ```
 
 Train ResNets-34 on the Kinetics dataset (400 classes) with 4 CPU threads (for data loading).  
@@ -270,3 +270,60 @@ python main.py --root_path ~/data --video_path ucf101_videos/jpg --annotation_pa
 --pretrain_path models/resnet-34-kinetics.pth --ft_begin_index 4 \
 --model resnet --model_depth 34 --resnet_shortcut A --batch_size 128 --n_threads 4 --checkpoint 5
 ```
+
+## Appunti su comandi di training
+
+### Training su HMDB
+
+```bash
+python utils/video_jpg_ucf101_hmdb51.py /mnt/external-drive/datasets/hmdb/ /home/eugenio/Documents/lavoro/git/3D-ResNets-PyTorch/training_videos/hmdb # ffmpeg genera frames
+
+python utils/n_frames_ucf101_hmdb51.py /home/eugenio/Documents/lavoro/git/3D-ResNets-PyTorch/training_videos/hmdb # Genera un file n_frames col numero di frames del video al suo interno
+
+# Al suo interno ci sono NOME_VIDEO <numero>
+# 0 -> ignorato | 1 -> training | 2 -> validation nei file contententi gli splits, es. 0_FIRST_DATES_run_f_nm_np1_ba_med_20.avi 1
+python utils/hmdb51_json.py /home/eugenio/Documents/lavoro/git/3D-ResNets-PyTorch/training_videos/hmdb/testTrainMulti_7030_splits # Crea 3 json nella cartella (ad es. hmdb51_1.json)
+# Crea un DATABASE di questo tipo:
+#{
+#  "labels": [
+#    "run"
+#  ],
+#  "database": {
+#    "20060723sfjffangelina_run_f_nm_np1_ri_med_2": {
+#      "subset": "training",
+#      "annotations": {
+#        "label": "run"
+#      }
+#    }
+#  }
+#}
+
+# SOLO RUN
+python utils/hmdb51_json.py /home/eugenio/Documents/lavoro/git/3D-ResNets-PyTorch/training_videos/hmdb/testTrainMulti_7030_splits_ONLY_RUN
+###
+```
+
+
+
+```bash
+python main.py 
+--root_path ~/data 
+--video_path ucf101_videos/jpg 
+--annotation_path ucf101_01.json \
+
+--result_path results 
+--dataset ucf101 
+--n_classes 400 
+--n_finetune_classes 101 \
+
+--pretrain_path models/resnet-34-kinetics.pth 
+--ft_begin_index 4 \
+
+--model resnet 
+--model_depth 34 
+--resnet_shortcut A 
+--batch_size 128 
+--n_threads 4 
+--checkpoint 5
+```
+
