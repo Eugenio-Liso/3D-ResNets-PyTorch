@@ -7,7 +7,7 @@ from joblib import Parallel, delayed
 
 def video_process(video_file_path, dst_root_path, ext, fps=-1, size=240):
     if ext != video_file_path.suffix:
-        return
+        raise("Check if the input videos in {} have the correct extension: {}".format(video_file_path, ext))
 
     ffprobe_cmd = ('ffprobe -v error -select_streams v:0 '
                    '-of default=noprint_wrappers=1:nokey=1 -show_entries '
@@ -75,9 +75,9 @@ if __name__ == '__main__':
         help='Directory path of jpg videos')
     parser.add_argument(
         'dataset',
-        default='',
+        default='generic',
         type=str,
-        help='Dataset name (kinetics | mit | ucf101 | hmdb51 | activitynet)')
+        help='Dataset name (kinetics | mit | ucf101 | hmdb51 | activitynet | generic)')
     parser.add_argument(
         '--n_jobs', default=-1, type=int, help='Number of parallel jobs')
     parser.add_argument(

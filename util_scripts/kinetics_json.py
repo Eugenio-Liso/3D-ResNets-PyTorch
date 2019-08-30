@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from .utils import get_n_frames
+from utils_frames import get_n_frames
 
 
 def convert_csv_to_dict(csv_path, subset):
