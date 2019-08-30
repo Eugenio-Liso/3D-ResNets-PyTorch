@@ -13,7 +13,7 @@ def get_training_data(video_path,
                       temporal_transform=None,
                       target_transform=None):
     assert dataset_name in [
-        'kinetics', 'activitynet', 'ucf101', 'hmdb51', 'mit'
+        'kinetics', 'activitynet', 'ucf101', 'hmdb51', 'mit', 'generic'
     ]
     assert file_type in ['jpg', 'hdf5']
 
@@ -56,7 +56,7 @@ def get_validation_data(video_path,
                         temporal_transform=None,
                         target_transform=None):
     assert dataset_name in [
-        'kinetics', 'activitynet', 'ucf101', 'hmdb51', 'mit'
+        'kinetics', 'activitynet', 'ucf101', 'hmdb51', 'mit', 'generic'
     ]
     assert file_type in ['jpg', 'hdf5']
 
@@ -101,7 +101,7 @@ def get_inference_data(video_path,
                        temporal_transform=None,
                        target_transform=None):
     assert dataset_name in [
-        'kinetics', 'activitynet', 'ucf101', 'hmdb51', 'mit'
+        'kinetics', 'activitynet', 'ucf101', 'hmdb51', 'mit', 'generic'
     ]
     assert file_type in ['jpg', 'hdf5']
     assert inference_subset in ['train', 'val', 'test']
