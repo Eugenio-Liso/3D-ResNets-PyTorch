@@ -4,10 +4,10 @@ from pathlib import Path
 
 def parse_opts():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--root_path',
-                        default=None,
-                        type=Path,
-                        help='Root directory path')
+    # parser.add_argument('--root_path',
+    #                     default=None,
+    #                     type=Path,
+    #                     help='Root directory path')
     parser.add_argument('--video_path',
                         default=None,
                         type=Path,
