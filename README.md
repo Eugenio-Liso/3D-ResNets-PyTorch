@@ -1,5 +1,7 @@
 # 3D ResNets for Action Recognition
 
+# THIS IS A FORKED REPO FROM https://github.com/kenshohara/3D-ResNets-PyTorch
+
 ## Update (2018/2/21)
 
 Our paper "Can Spatiotemporal 3D CNNs Retrace the History of 2D CNNs and ImageNet?" is accepted to CVPR2018!  
@@ -275,9 +277,8 @@ python main.py --root_path ~/data --video_path ucf101_videos/jpg --annotation_pa
 
 - Noi dovremmo dare tutti i dati in training, mentre si fa distinzione fra training-validation-ignorato. Forse questa cosa è da cambiare -> modificare i file per gli splits (es quelli in testTrainMulti_7030_splits) e renderli solo 1-2 oppure modificare `hmdb51_json.py` riga 19 per poter prendere anche quelli con indice 0 (togliere continue)
 - Also, per quale motivo dovrei dare un file per volta di annotazione?! `--annotation_path ucf101_01.json` ? Perchè non tutti quanti? Per risolvere questo problema, basterà a target creare solo un file di split (e non 3 come HMDB51)
+  - Gli split sono stati decisi in modo tale che differenti video finiscano in run differenti. Si fa poi una media dei risultati
 - Bisognerà modificare il parametro `--dataset` nel training per accettare un dataset _generico_.
-- Per ora sto usando gli script presi da master (in utils_from_master) diversi da quelli in util_scripts (del branch work) -> **NON VA BENE** USA QUELLI NUOVI
-- Ho modificato i path in modo tale da farli diventare assoluti (in main.py riga 38)
 
 ### Training su HMDB
 
