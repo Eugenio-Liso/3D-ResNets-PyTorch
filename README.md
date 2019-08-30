@@ -283,6 +283,21 @@ python main.py --root_path ~/data --video_path ucf101_videos/jpg --annotation_pa
 
 #### PREPROCESSING
 
+- **CURRENT BRANCH (WORK/THESIS)**
+
+```bash
+# Probabilmente servirà generate_video_jpgs.py + hmdb51_json.py
+#genera frames
+python util_scripts/generate_video_jpgs.py /mnt/external-drive/datasets/hmdb /home/eugenio/Documents/lavoro/git/3D-ResNets-PyTorch/training/hmdb/videos generic
+
+# Crea file di annotazione specifici
+python util_scripts/hmdb51_json.py /home/eugenio/Documents/lavoro/git/3D-ResNets-PyTorch/training/hmdb/testTrainMulti_7030_splits_ONLY_RUN_WALK /home/eugenio/Documents/lavoro/git/3D-ResNets-PyTorch/training/hmdb/videos /home/eugenio/Documents/lavoro/git/3D-ResNets-PyTorch/annotations
+```
+
+
+
+- **OLD MASTER BRANCH**
+
 ```bash
 python utils_from_master/video_jpg_ucf101_hmdb51.py /mnt/external-drive/datasets/hmdb/ /home/eugenio/Documents/lavoro/git/3D-ResNets-PyTorch/training/hmdb/videos # ffmpeg genera frames per ogni video
 
@@ -319,7 +334,6 @@ python utils_from_master/hmdb51_json.py /home/eugenio/Documents/lavoro/git/3D-Re
 
 ```bash
 python main.py  \
---root_path /home/eugenio/Documents/lavoro/git/3D-ResNets-PyTorch/training \
 --video_path /home/eugenio/Documents/lavoro/git/3D-ResNets-PyTorch/training/hmdb/videos \
 --annotation_path /home/eugenio/Documents/lavoro/git/3D-ResNets-PyTorch/training/hmdb/testTrainMulti_7030_splits_ONLY_RUN_WALK/hmdb51_1.json \
 --result_path /home/eugenio/Documents/lavoro/git/3D-ResNets-PyTorch/training/results \
@@ -341,7 +355,6 @@ python main.py  \
 
 ```bash
 python main.py  \
---root_path /home/eugenio/Documents/lavoro/git/3D-ResNets-PyTorch/training \
 --video_path /home/eugenio/Documents/lavoro/git/3D-ResNets-PyTorch/training/hmdb/videos \
 --annotation_path /home/eugenio/Documents/lavoro/git/3D-ResNets-PyTorch/training/hmdb/testTrainMulti_7030_splits_ONLY_RUN_WALK/hmdb51_1.json \ # Ce ne possono essere anche altri (vedere se modificare)
 --result_path /home/eugenio/Documents/lavoro/git/3D-ResNets-PyTorch/training/results \
