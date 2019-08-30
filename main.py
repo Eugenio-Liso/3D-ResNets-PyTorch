@@ -266,6 +266,7 @@ if __name__ == '__main__':
 
     model, parameters = generate_model(opt)
     print(model)
+    # Qui si puo' cambiare la LOSS
     criterion = CrossEntropyLoss().to(opt.device)
 
     if not opt.no_train:

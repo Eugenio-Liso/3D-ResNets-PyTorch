@@ -36,7 +36,6 @@ def val_epoch(epoch,
             accuracies.update(acc, inputs.size(0))
 
             batch_time.update(time.time() - end_time)
-            end_time = time.time()
 
             print('Epoch: [{0}][{1}/{2}]\t'
                   'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
@@ -50,6 +49,8 @@ def val_epoch(epoch,
                       data_time=data_time,
                       loss=losses,
                       acc=accuracies))
+
+            end_time = time.time()
 
     logger.log({'epoch': epoch, 'loss': losses.avg, 'acc': accuracies.avg})
 

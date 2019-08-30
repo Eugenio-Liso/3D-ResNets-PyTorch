@@ -16,10 +16,17 @@ def train_epoch(epoch,
                 epoch_logger,
                 batch_logger,
                 tb_writer=None):
-    print('train at epoch {}'.format(epoch))
+    print('Training at epoch {}'.format(epoch))
 
     model.train()
 
+    # train at epoch 10
+    # Epoch: [10][1/9]	Time 1.092 (1.092)	Data 0.769 (0.769)	Loss 4.7849 (4.7849)	Acc 0.750 (0.750)
+
+    # Batch time: Tempo totale per batch, da feed forward a backprop incluso
+    # Data time: Tempo di caricamento dei dati nel batch considerato
+    # Loss: funzione di Loss (Cross Entropy) - Sinistra valore corrente, destra media fra tutti i valori
+    # Acc: Accuratezza - Sinistra valore corrente, destra media fra tutti i valori
     batch_time = AverageMeter()
     data_time = AverageMeter()
     losses = AverageMeter()
@@ -42,7 +49,6 @@ def train_epoch(epoch,
         optimizer.step()
 
         batch_time.update(time.time() - end_time)
-        end_time = time.time()
 
         batch_logger.log({
             'epoch': epoch,
@@ -57,13 +63,15 @@ def train_epoch(epoch,
               'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
               'Data {data_time.val:.3f} ({data_time.avg:.3f})\t'
               'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
-              'Acc {acc.val:.3f} ({acc.avg:.3f})'.format(epoch,
-                                                         i + 1,
-                                                         len(data_loader),
-                                                         batch_time=batch_time,
-                                                         data_time=data_time,
-                                                         loss=losses,
-                                                         acc=accuracies))
+              'Acc {acc.val:.3f} ({acc.avg:.3f})\n'.format(epoch,
+                                                           i + 1,
+                                                           len(data_loader),
+                                                           batch_time=batch_time,
+                                                           data_time=data_time,
+                                                           loss=losses,
+                                                           acc=accuracies))
+
+        end_time = time.time()
 
     epoch_logger.log({
         'epoch': epoch,
