@@ -76,10 +76,9 @@ if __name__ == '__main__':
                     mkdir_p(output_video_folder)
 
                     if os.path.exists(input_video):
-                        ffmpeg_command = 'rm %(outpath)s &> /dev/null; \
-                                              ffmpeg -ss %(start_timestamp)s -i \
-                                              %(videopath)s -g 1 -force_key_frames 0 \
-                                              -t %(clip_length)d -loglevel error %(outpath)s' % {
+                        ffmpeg_command = 'ffmpeg -ss %(start_timestamp)s -i \
+                        %(videopath)s -g 1 -force_key_frames 0 \
+                        -t %(clip_length)d -loglevel error %(outpath)s' % {
                             'start_timestamp': hou_min_sec(start_time_seconds * 1000),
                             # 'end_timestamp': hou_min_sec(clip_end * 1000),
                             'clip_length': end_time_seconds,
