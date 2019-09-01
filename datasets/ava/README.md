@@ -1,14 +1,11 @@
 # Tested with version v2.2 of the AVA dataset
 
 - Download dataset from: https://research.google.com/ava/download.html
-- Create conda env (or something else) with openCV
+- Process videos with `extract_segments_ava.py` with (please do not modify the provided action list csv file): 
 ```bash
-conda install opencv3=3.2.0 -c menpo
-```
-- Process videos with `extract_dataset.py` with (please do not modify the provided action list csv file): 
-```bash
-python extract_dataset.py \
+python extract_segments_ava.py \
 --video_dir ... \
 --annot_file ... \
---output_dir ...
+--output_dir ... \
+--filter_on_class 10
 ```
