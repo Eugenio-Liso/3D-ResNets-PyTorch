@@ -75,7 +75,7 @@ if __name__ == '__main__':
 
                     mkdir_p(output_video_folder)
 
-                    if os.path.exists(input_video):
+                    if os.path.exists(input_video) and not os.path.exists(output_video):
                         ffmpeg_command = 'ffmpeg -ss %(start_timestamp)s -i \
                         %(videopath)s -g 1 -force_key_frames 0 \
                         -t %(clip_length)d -loglevel error %(outpath)s' % {
