@@ -75,17 +75,20 @@ if __name__ == '__main__':
 
                     mkdir_p(output_video_folder)
 
-                    if os.path.exists(input_video) and not os.path.exists(output_video):
-                        ffmpeg_command = 'ffmpeg -ss %(start_timestamp)s -i \
-                        %(videopath)s -g 1 -force_key_frames 0 \
-                        -t %(clip_length)d -loglevel error %(outpath)s' % {
-                            'start_timestamp': hou_min_sec(start_time_seconds * 1000),
-                            # 'end_timestamp': hou_min_sec(clip_end * 1000),
-                            'clip_length': end_time_seconds,
-                            'videopath': input_video,
-                            'outpath': output_video}
+                    if os.path.exists(input_video):
+                        if os.path.exists(output_video):
+                            print("Output path {} already exists. Skipping...".format(output_video))
+                        else:
+                            ffmpeg_command = 'ffmpeg -ss %(start_timestamp)s -i \
+                            %(videopath)s -g 1 -force_key_frames 0 \
+                            -t %(clip_length)d -loglevel error %(outpath)s' % {
+                                'start_timestamp': hou_min_sec(start_time_seconds * 1000),
+                                # 'end_timestamp': hou_min_sec(clip_end * 1000),
+                                'clip_length': end_time_seconds,
+                                'videopath': input_video,
+                                'outpath': output_video}
 
-                        subprocess.call(ffmpeg_command, shell=True)
+                            subprocess.call(ffmpeg_command, shell=True)
                     else:
                         print("The input video: {} does not exists".format(input_video))
 
