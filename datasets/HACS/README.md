@@ -1,7 +1,7 @@
 Download whole dataset with the instructions here: https://github.com/hangzhaomit/HACS-dataset
 
 ```bash
-python extract_segments.py \
+python extract_segments_hacs.py \
 --video_dir \
 --annot_file .../HACS_clips_v1.1.csv \
 -- output_dir \
