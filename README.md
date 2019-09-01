@@ -2,37 +2,17 @@
 
 # THIS IS A FORKED REPO FROM https://github.com/kenshohara/3D-ResNets-PyTorch
 
-## Update (2018/2/21)
+## Requirements
 
-Our paper "Can Spatiotemporal 3D CNNs Retrace the History of 2D CNNs and ImageNet?" is accepted to CVPR2018!  
-We update the paper information.
+* [PyTorch](http://pytorch.org/)
 
-## Update (2018/01/16)
+```bash
+conda install pandas=0.25.1 scikit-learn=0.21.2 h5py=2.9.0 pytorch=1.0.0 torchvision=0.2.1 cuda80=1.0 -c soumith
+```
 
-We uploaded some of fine-tuned models on UCF-101 and HMDB-51.
+* FFmpeg, FFprobe (should be installed by default on a Linux system)
 
-* ResNeXt-101 fine-tuned on UCF-101 (split1)
-* ResNeXt-101 (64 frame inputs) fine-tuned on UCF-101 (split1)
-* ResNeXt-101 fine-tuned on HMDB-51 (split1)
-* ResNeXt-101 (64 frame inputs) fine-tuned on HMDB-51 (split1)
-
-## Update (2017/11/27)
-
-We published [a new paper](https://arxiv.org/abs/1711.09577) on arXiv.  
-We also added the following new models and their Kinetics pretrained models in this repository.  
-
-* ResNet-50, 101, 152, 200
-* Pre-activation ResNet-200
-* Wide ResNet-50
-* ResNeXt-101
-* DenseNet-121, 201
-
-In addition, we supported new datasets (UCF-101 and HDMB-51) and fine-tuning functions.
-
-Some minor changes are included.
-
-* Outputs are normalized by softmax in test.
-  * If you do not want to perform the normalization, please use ```--no_softmax_in_test``` option.
+* Python 3
 
 ## Summary
 
@@ -57,49 +37,11 @@ use [this code](https://github.com/kenshohara/video-classification-3d-cnn-pytorc
 **The Torch (Lua) version of this code is available [here](https://github.com/kenshohara/3D-ResNets).**  
 Note that the Torch version only includes ResNet-18, 34, 50, 101, and 152.
 
-## Citation
-
-If you use this code or pre-trained models, please cite the following:
-
-```bibtex
-@inproceedings{hara3dcnns,
-  author={Kensho Hara and Hirokatsu Kataoka and Yutaka Satoh},
-  title={Can Spatiotemporal 3D CNNs Retrace the History of 2D CNNs and ImageNet?},
-  booktitle={Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR)},
-  pages={6546--6555},
-  year={2018},
-}
-```
-
 ## Pre-trained models
 
 Pre-trained models are available [here](https://drive.google.com/drive/folders/1zvl89AgFAApbH0At-gMuZSeQB_LpNP-M?usp=sharing).  
 All models are trained on Kinetics.  
 ResNeXt-101 achieved the best performance in our experiments. (See [paper](https://arxiv.org/abs/1711.09577) in details.)
-
-```misc
-resnet-18-kinetics.pth: --model resnet --model_depth 18 --resnet_shortcut A
-resnet-34-kinetics.pth: --model resnet --model_depth 34 --resnet_shortcut A
-resnet-34-kinetics-cpu.pth: CPU ver. of resnet-34-kinetics.pth
-resnet-50-kinetics.pth: --model resnet --model_depth 50 --resnet_shortcut B
-resnet-101-kinetics.pth: --model resnet --model_depth 101 --resnet_shortcut B
-resnet-152-kinetics.pth: --model resnet --model_depth 152 --resnet_shortcut B
-resnet-200-kinetics.pth: --model resnet --model_depth 200 --resnet_shortcut B
-preresnet-200-kinetics.pth: --model preresnet --model_depth 200 --resnet_shortcut B
-wideresnet-50-kinetics.pth: --model wideresnet --model_depth 50 --resnet_shortcut B --wide_resnet_k 2
-resnext-101-kinetics.pth: --model resnext --model_depth 101 --resnet_shortcut B --resnext_cardinality 32
-densenet-121-kinetics.pth: --model densenet --model_depth 121
-densenet-201-kinetics.pth: --model densenet --model_depth 201
-```
-
-Some of fine-tuned models on UCF-101 and HMDB-51 (split 1) are also available.
-
-```misc
-resnext-101-kinetics-ucf101_split1.pth: --model resnext --model_depth 101 --resnet_shortcut B --resnext_cardinality 32
-resnext-101-64f-kinetics-ucf101_split1.pth: --model resnext --model_depth 101 --resnet_shortcut B --resnext_cardinality 32 --sample_duration 64
-resnext-101-kinetics-hmdb51_split1.pth: --model resnext --model_depth 101 --resnet_shortcut B --resnext_cardinality 32
-resnext-101-64f-kinetics-hmdb51_split1.pth: --model resnext --model_depth 101 --resnet_shortcut B --resnext_cardinality 32 --sample_duration 64
-```
 
 ### Performance of the models on Kinetics
 
@@ -118,24 +60,6 @@ This table shows the averaged accuracies over top-1 and top-5 on Kinetics.
 | ResNeXt-101 | 75.4 |
 | DenseNet-121 | 70.8 |
 | DenseNet-201 | 72.3 |
-
-## Requirements
-
-* [PyTorch](http://pytorch.org/)
-
-```bash
-conda install pandas=0.25.1 scikit-learn=0.21.2 h5py=2.9.0 pytorch=1.0.0 torchvision=0.2.1 cuda80=1.0 -c soumith
-```
-
-* FFmpeg, FFprobe
-
-```bash
-wget http://johnvansickle.com/ffmpeg/releases/ffmpeg-release-64bit-static.tar.xz
-tar xvf ffmpeg-release-64bit-static.tar.xz
-cd ./ffmpeg-3.3.3-64bit-static/; sudo cp ffmpeg ffprobe /usr/local/bin;
-```
-
-* Python 3
 
 ## Preparation
 
@@ -328,8 +252,6 @@ python utils_from_master/hmdb51_json.py /home/eugenio/Documents/lavoro/git/3D-Re
 ```
 
 #### TRAINING 
-
-- Seguire la struttura delle DIRECTORY specificata più sopra
 
 ### resnet-34
 
