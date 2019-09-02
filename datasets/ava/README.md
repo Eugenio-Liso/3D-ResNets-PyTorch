@@ -2,6 +2,7 @@
 
 - Download dataset from: https://research.google.com/ava/download.html
 - Process videos with `extract_segments_ava.py` with (please do not modify the provided action list csv file): 
+
 ```bash
 python extract_segments_ava.py \
 --video_dir ... \
