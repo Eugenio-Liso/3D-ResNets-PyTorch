@@ -61,7 +61,11 @@ This table shows the averaged accuracies over top-1 and top-5 on Kinetics.
 | DenseNet-121 | 70.8 |
 | DenseNet-201 | 72.3 |
 
-## Preparation
+# Preparation
+
+## Extra datasets support
+
+Follow the instructions in the README under each folder in `datasets`
 
 ### ActivityNet
 
@@ -204,18 +208,30 @@ python main.py --root_path ~/data --video_path ucf101_videos/jpg --annotation_pa
   - Gli split sono stati decisi in modo tale che differenti video finiscano in run differenti. Si fa poi una media dei risultati
 - Bisognerà modificare il parametro `--dataset` nel training per accettare un dataset _generico_.
 
-### Training su HMDB
+### PREPROCESSING
 
-#### PREPROCESSING
+#### Training su HMDB
 
 - **CURRENT BRANCH (WORK/THESIS)**
 
 ```bash
-# Probabilmente servirà generate_video_jpgs.py + hmdb51_json.py
 #genera frames
 python util_scripts/generate_video_jpgs.py /mnt/external-drive/datasets/hmdb /home/eugenio/Documents/lavoro/git/3D-ResNets-PyTorch/training/hmdb/videos generic
 
 # Crea file di annotazione specifici
+#{
+#  "labels": [
+#    "run"
+#  ],
+#  "database": {
+#    "20060723sfjffangelina_run_f_nm_np1_ri_med_2": {
+#      "subset": "training",
+#      "annotations": {
+#        "label": "run"
+#      }
+#    }
+#  }
+#}
 python util_scripts/hmdb51_json.py /home/eugenio/Documents/lavoro/git/3D-ResNets-PyTorch/training/hmdb/testTrainMulti_7030_splits_ONLY_RUN_WALK /home/eugenio/Documents/lavoro/git/3D-ResNets-PyTorch/training/hmdb/videos /home/eugenio/Documents/lavoro/git/3D-ResNets-PyTorch/annotations
 ```
 
@@ -251,9 +267,18 @@ python utils_from_master/hmdb51_json.py /home/eugenio/Documents/lavoro/git/3D-Re
 ###
 ```
 
-#### TRAINING 
+#### TRAINING GENERIC DATASETS
 
-### resnet-34
+```bash
+#genera frames
+python util_scripts/generate_video_jpgs.py <dataset_path> <output_path> generic
+
+# TODO
+```
+
+### TRAINING 
+
+#### resnet-34
 
 ```bash
 python main.py  \
@@ -274,7 +299,7 @@ python main.py  \
 --n_epochs 10
 ```
 
-### resnet-101
+#### resnet-101
 
 ```bash
 python main.py  \
@@ -461,4 +486,3 @@ optional arguments:
                         (jpg | hdf5)
   --tensorboard         If true, output tensorboard log file.
 ```
-
