@@ -12,7 +12,7 @@ conda install pandas=0.25.1 scikit-learn=0.21.2 h5py=2.9.0 pytorch=1.0.0 torchvi
 
 * FFmpeg, FFprobe (should be installed by default on a Linux system)
 
-* Python 3
+* Python 3.7
 
 ## Summary
 
