@@ -267,12 +267,19 @@ python utils_from_master/hmdb51_json.py /home/eugenio/Documents/lavoro/git/3D-Re
 ###
 ```
 
-#### TRAINING GENERIC DATASETS
+#### PREPROCESSING GENERIC DATASETS
 
 ```bash
 #genera frames
-python util_scripts/generate_video_jpgs.py <dataset_path> <output_path> generic
+python util_scripts/generate_video_jpgs.py <dataset_path_subfolders_with_classes> <output_path> generic
 
+python util_scripts/generic_dataset_to_json.py \
+--output_annotations_path  
+--video_path_training 
+--video_path_validation  
+--output_splits_path
+
+oppure con --split_size
 # TODO
 ```
 
