@@ -2,18 +2,21 @@ import argparse
 import csv
 import os
 import subprocess
+import json
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--video_dir", help="Videos path.")
 parser.add_argument("--annot_file",
                     help="Anotation file path (usually HACS_clips_v1.1.csv)")
 parser.add_argument("--output_dir", help="Output path.")
+parser.add_argument("--rename_target_class", type=json.loads, help="Optional classes to rename", default={})
 
 FLAGS = parser.parse_args()
 
 video_dir = FLAGS.video_dir
 annot_file = FLAGS.annot_file
 output_dir = FLAGS.output_dir
+rename_target_class = FLAGS.rename_target_class
 
 
 def _supermakedirs(path, mode):
@@ -52,6 +55,9 @@ if __name__ == '__main__':
                 input_video_path = os.path.join(video_dir, input_video_id)
 
                 if os.path.exists(input_video_path):
+                    if target_class in rename_target_class:
+                        target_class = rename_target_class[target_class]
+
                     output_folder = os.path.join(output_dir, target_class, subset)
                     output_video_path = os.path.join(output_folder, input_video_id)
 
