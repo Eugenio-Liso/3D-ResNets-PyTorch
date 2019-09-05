@@ -2,12 +2,14 @@ import argparse
 import csv
 import os
 import subprocess
+import json
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--video_dir", help="Videos path.")
 parser.add_argument("--annot_file",
                     help="Anotation file path (usually HACS_clips_v1.1.csv)")
 parser.add_argument("--output_dir", help="Output path.")
+parser.add_argument("--rename_target_class", type=json.loads, help="Optional classes to rename", default={})
 parser.add_argument("--filter_on_classes", nargs='*', help="Optional classes to filter on", default=[])
 
 FLAGS = parser.parse_args()
@@ -16,6 +18,7 @@ filter_on_classes = FLAGS.filter_on_classes
 video_dir = FLAGS.video_dir
 annot_file = FLAGS.annot_file
 output_dir = FLAGS.output_dir
+rename_target_class = FLAGS.rename_target_class
 
 
 def hou_min_sec(millis):
@@ -68,6 +71,9 @@ if __name__ == '__main__':
                 if label == '1':  # && subset = 'training' or subset = 'validation' FOR NOW I TAKE ALL THE VIDEOS AND DISCARD NEGATIVE EXAMPLES
                     input_video = os.path.join(video_dir, target_class, "v_{}.mp4".format(video_id))
 
+                    if target_class in rename_target_class:
+                        target_class = rename_target_class[target_class]
+
                     output_video_folder = os.path.join(output_dir, target_class)
                     output_video = os.path.join(output_video_folder, "v_{}_{}_{}.mp4".format(video_id,
                                                                                              start_time_seconds,
@@ -84,7 +90,7 @@ if __name__ == '__main__':
                             -t %(clip_length)d -loglevel error %(outpath)s' % {
                                 'start_timestamp': hou_min_sec(start_time_seconds * 1000),
                                 # 'end_timestamp': hou_min_sec(clip_end * 1000),
-                                'clip_length': end_time_seconds,
+                                'clip_length': (end_time_seconds - start_time_seconds),
                                 'videopath': input_video,
                                 'outpath': output_video}
 
