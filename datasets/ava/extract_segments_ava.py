@@ -133,13 +133,13 @@ if __name__ == '__main__':
 
                 if os.path.exists(os.path.join(video_dir, "{}.mp4".format(video_id))):
                     input_video = os.path.join(video_dir, "{}.mp4".format(video_id))
-                    ext = '.mp4'
+                    ext = 'mp4'
                 elif os.path.exists(os.path.join(video_dir, "{}.webm".format(video_id))):
                     input_video = os.path.join(video_dir, "{}.webm".format(video_id))
-                    ext = '.webm'
+                    ext = 'webm'
                 elif os.path.exists(os.path.join(video_dir, "{}.mkv".format(video_id))):
                     input_video = os.path.join(video_dir, "{}.mkv".format(video_id))
-                    ext = '.mkv'
+                    ext = 'mkv'
                 else:
                     raise ("No video found: {} in input video directory: {}".format(video_id, video_dir))
 
