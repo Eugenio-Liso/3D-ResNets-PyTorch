@@ -3,10 +3,10 @@ import argparse
 from pathlib import Path
 
 from joblib import Parallel, delayed
+import os
 
 
-def video_process(video_file_path, dst_root_path, fps=-1, size=240):
-
+def video_process(video_file_path, dst_root_path, class_dir_path, fps=-1, size=240):
     ffprobe_cmd = ('ffprobe -v error -select_streams v:0 '
                    '-of default=noprint_wrappers=1:nokey=1 -show_entries '
                    'stream=width,height,avg_frame_rate,duration').split()
@@ -22,9 +22,25 @@ def video_process(video_file_path, dst_root_path, fps=-1, size=240):
     duration = float(res[3])
     n_frames = int(frame_rate * duration)
 
+    str_video = str(video_file_path)
+    num_of_dots = str_video.split("/")[-1].count('.')
+
+    if num_of_dots == 0:
+        raise ("Video {} should have an extension.".format(video_file_path))
+    elif num_of_dots > 1:
+        print("Video name {} with more than 1 dot. Substituting the other dots with _".format(video_file_path))
+
+        # Slices the string and substitute . with _
+        new_video_name = f"{str_video[:str_video.rfind('.')].replace('.', '_')}{str_video[str_video.rfind('.'):]}"
+        target_video = os.path.join(class_dir_path, new_video_name)
+
+        os.rename(video_file_path, target_video)
+        video_file_path = Path(target_video)
+
     name = video_file_path.stem
+
     dst_dir_path = dst_root_path / name
-    dst_dir_path.mkdir(exist_ok=True)
+    dst_dir_path.mkdir(exist_ok=False)  # Prevents duplicate video names
     n_exist_frames = len([
         x for x in dst_dir_path.iterdir()
         if x.suffix == '.jpg' and x.name[0] != '.'
@@ -44,7 +60,7 @@ def video_process(video_file_path, dst_root_path, fps=-1, size=240):
     if fps > 0:
         vf_param += ',minterpolate={}'.format(fps)
 
-    ffmpeg_cmd = ['ffmpeg', '-i', str(video_file_path), '-vf', vf_param]
+    ffmpeg_cmd = ['ffmpeg', '-i', str(video_file_path), '-vf', vf_param, '-loglevel', 'error']
     ffmpeg_cmd += ['-threads', '1', '{}/image_%05d.jpg'.format(dst_dir_path)]
     print(ffmpeg_cmd)
     subprocess.run(ffmpeg_cmd)
@@ -59,7 +75,7 @@ def class_process(class_dir_path, dst_root_path, fps=-1, size=240):
     dst_class_path.mkdir(exist_ok=True)
 
     for video_file_path in sorted(class_dir_path.iterdir()):
-        video_process(video_file_path, dst_class_path, fps, size)
+        video_process(video_file_path, dst_class_path, class_dir_path, fps, size)
 
 
 if __name__ == '__main__':
@@ -93,7 +109,7 @@ if __name__ == '__main__':
         status_list = Parallel(
             n_jobs=args.n_jobs,
             backend='threading')(delayed(video_process)(
-                video_file_path, args.dst_path, args.fps, args.size)
+            video_file_path, args.dst_path, args.fps, args.size)
                                  for video_file_path in video_file_paths)
     else:
         class_dir_paths = [x for x in sorted(args.dir_path.iterdir())]
@@ -104,5 +120,5 @@ if __name__ == '__main__':
         status_list = Parallel(
             n_jobs=args.n_jobs,
             backend='threading')(delayed(class_process)(
-                class_dir_path, args.dst_path, args.fps, args.size)
+            class_dir_path, args.dst_path, args.fps, args.size)
                                  for class_dir_path in class_dir_paths)

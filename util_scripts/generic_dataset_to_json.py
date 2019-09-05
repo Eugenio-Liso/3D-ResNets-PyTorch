@@ -36,10 +36,10 @@ def convert_splits_to_dict(split_file_path, video_with_label):
     return database
 
 
-def convert_dataset_to_json(output_splits_path, video_dir_path, video_with_label, target_classes):
+def convert_dataset_to_json(output_splits_path, frames_dir, video_with_label, target_classes):
     database = convert_splits_to_dict(output_splits_path, video_with_label)
 
-    dst_data = {'labels': target_classes, 'database': {}}
+    dst_data = {'labels': list(target_classes), 'database': {}}
     dst_data['database'].update(database)
 
     for k, v in dst_data['database'].items():
@@ -48,7 +48,7 @@ def convert_dataset_to_json(output_splits_path, video_dir_path, video_with_label
         else:
             label = 'test'
 
-        video_path = video_dir_path / label / k
+        video_path = frames_dir / label / k
         n_frames = get_n_frames(video_path)
         v['annotations']['segment'] = (1, n_frames + 1)
 
@@ -127,15 +127,25 @@ def maybe_fix_duplicates(video_path):
         input_videos = os.listdir(input_video_path)
 
         for input_video in input_videos:
+            num_of_dots = input_video.count('.')
+            source_video = os.path.join(input_video_path, input_video)
+
+            if num_of_dots == 0:
+                raise ("Video {} should have an extension.".format(input_video))
+            elif num_of_dots > 1:
+                print("Video name {} with more than 1 dot. Substituting the other dots with _".format(input_video))
+
+                # Slices the string and substitute . with _
+                input_video = f"{input_video[:input_video.rfind('.')].replace('.', '_')}{input_video[input_video.rfind('.'):]}"
+                target_video = os.path.join(input_video_path, input_video)
+
+                os.rename(source_video, target_video)
+
             if input_video in videos:
                 new_video_name = f"{input_video.split('.')[0]}_{target_class}.{input_video.split('.')[1]}"
                 print("Duplicate video name {}. Substituting with {}".format(input_video, new_video_name))
 
-                source_video = os.path.join(input_video_path, input_video)
                 target_video = os.path.join(input_video_path, new_video_name)
-
-                print(source_video)
-                print(target_video)
                 os.rename(source_video, target_video)
             else:
                 videos.append(input_video)
@@ -168,6 +178,10 @@ if __name__ == '__main__':
                         default=None,
                         type=Path,
                         help='Directory path of the output generic split files that will be created')
+    parser.add_argument('--frames_dir',
+                        default=None,
+                        type=Path,
+                        help='Directory path of the video frames')
 
     args = parser.parse_args()
 
@@ -185,14 +199,16 @@ if __name__ == '__main__':
         for split in list_of_splitted_videos:
             split_file.write(f"{split}\n")
 
+    frames_dir = args.frames_dir
 
-    json_training = convert_dataset_to_json(output_splits_path, video_path_train, video_with_label,
+    json_training = convert_dataset_to_json(output_splits_path, frames_dir, video_with_label,
                                             target_classes)
 
-    json_validation = convert_dataset_to_json(output_splits_path, video_path_validation, video_with_label,
+    json_validation = convert_dataset_to_json(output_splits_path, frames_dir, video_with_label,
                                               target_classes)
 
     output_annotations_path = args.output_annotations_path
 
     with output_annotations_path.open('w+') as dst_file:
-        json.dump({**json_training, **json_validation}, dst_file)
+        data_to_write = {**json_training, **json_validation}
+        json.dump(data_to_write, dst_file, indent=4)
