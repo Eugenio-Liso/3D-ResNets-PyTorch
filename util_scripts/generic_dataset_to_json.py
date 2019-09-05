@@ -104,9 +104,8 @@ def parse_subset_data(seed, split_size, video_path, is_training):
                 video_with_label[input_video] = target_class
 
             if split_size:
-                normalized_split = split_size / 100
                 rand_num = random.uniform(0, 1)
-                if rand_num <= normalized_split:
+                if rand_num <= split_size:
                     result_video_and_subset.append(f"{input_video} 1")  # 1 means training
                 else:
                     result_video_and_subset.append(f"{input_video} 2")  # 2 means validation
