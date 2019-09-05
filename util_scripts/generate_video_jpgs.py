@@ -17,11 +17,6 @@ def video_process(video_file_path, dst_root_path, class_dir_path, fps=-1, size=2
     if len(res) < 4:
         return
 
-    frame_rate = [float(r) for r in res[2].split('/')]
-    frame_rate = frame_rate[0] / frame_rate[1]
-    duration = float(res[3])
-    n_frames = int(frame_rate * duration)
-
     str_video = str(video_file_path)
     num_of_dots = str_video.split("/")[-1].count('.')
 
@@ -41,13 +36,6 @@ def video_process(video_file_path, dst_root_path, class_dir_path, fps=-1, size=2
 
     dst_dir_path = dst_root_path / name
     dst_dir_path.mkdir(exist_ok=False)  # Prevents duplicate video names
-    n_exist_frames = len([
-        x for x in dst_dir_path.iterdir()
-        if x.suffix == '.jpg' and x.name[0] != '.'
-    ])
-
-    if n_exist_frames >= n_frames:
-        return
 
     width = int(res[0])
     height = int(res[1])
@@ -62,9 +50,7 @@ def video_process(video_file_path, dst_root_path, class_dir_path, fps=-1, size=2
 
     ffmpeg_cmd = ['ffmpeg', '-i', str(video_file_path), '-vf', vf_param, '-loglevel', 'error']
     ffmpeg_cmd += ['-threads', '1', '{}/image_%05d.jpg'.format(dst_dir_path)]
-    print(ffmpeg_cmd)
     subprocess.run(ffmpeg_cmd)
-    print('\n')
 
 
 def class_process(class_dir_path, dst_root_path, fps=-1, size=240):
