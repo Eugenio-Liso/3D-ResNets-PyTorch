@@ -64,7 +64,6 @@ if __name__ == '__main__':
                             'input_video_path': input_video_path,
                             'output_video_path': output_video_path
                         }
-                        print(command)
                         subprocess.call(command, shell=True)
                 else:
                     raise "Input video {} not found.".format(input_video_path)
