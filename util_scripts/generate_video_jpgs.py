@@ -15,13 +15,16 @@ def video_process(video_file_path, dst_root_path, class_dir_path, existing_video
     p = subprocess.run(ffprobe_cmd, capture_output=True)
     res = p.stdout.decode('utf-8').splitlines()
     if len(res) < 4:
-        return
+        raise Exception("Video {} is potentially corrupted. Delete it from the input video directory and re-run this "
+                        "script.".format(video_file_path))
 
     str_video = str(video_file_path)
+    if str_video == 'v_W-poAYW1pb0_42.0_44.0':
+        print("asd")
     num_of_dots = str_video.split("/")[-1].count('.')
 
     if num_of_dots == 0:
-        raise ("Video {} should have an extension.".format(video_file_path))
+        raise Exception("Video {} should have an extension.".format(video_file_path))
     elif num_of_dots > 1:
         print("Video name {} with more than 1 dot. Substituting the other dots with _".format(video_file_path))
 
