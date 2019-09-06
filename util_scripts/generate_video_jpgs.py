@@ -6,7 +6,7 @@ from joblib import Parallel, delayed
 import os
 
 
-def video_process(video_file_path, dst_root_path, class_dir_path, fps=-1, size=240):
+def video_process(video_file_path, dst_root_path, class_dir_path, existing_videos, fps=-1, size=240):
     ffprobe_cmd = ('ffprobe -v error -select_streams v:0 '
                    '-of default=noprint_wrappers=1:nokey=1 -show_entries '
                    'stream=width,height,avg_frame_rate,duration').split()
@@ -35,7 +35,23 @@ def video_process(video_file_path, dst_root_path, class_dir_path, fps=-1, size=2
     name = video_file_path.stem
 
     dst_dir_path = dst_root_path / name
-    dst_dir_path.mkdir(exist_ok=False)  # Prevents duplicate video names
+
+    if name in existing_videos:
+        new_video_name = f"{name.split('.')[0]}_{class_dir_path.stem}.{name.split('.')[1]}"
+        print("Duplicate video name {}. Substituting with {}".format(dst_dir_path, new_video_name))
+
+        target_video = os.path.join(dst_root_path, new_video_name)
+        os.rename(video_file_path, target_video)
+
+        dst_dir_path = target_video
+    else:
+        existing_videos.append(name)
+
+    if os.path.exists(dst_dir_path):
+        # print(f"{dst_dir_path} already exists. Skipping...")
+        return
+    else:
+        os.mkdir(dst_dir_path)
 
     width = int(res[0])
     height = int(res[1])
@@ -50,6 +66,7 @@ def video_process(video_file_path, dst_root_path, class_dir_path, fps=-1, size=2
 
     ffmpeg_cmd = ['ffmpeg', '-i', str(video_file_path), '-vf', vf_param, '-loglevel', 'error']
     ffmpeg_cmd += ['-threads', '1', '{}/image_%05d.jpg'.format(dst_dir_path)]
+    print(f"Writing to {dst_dir_path}")
     subprocess.run(ffmpeg_cmd)
 
 
@@ -60,8 +77,9 @@ def class_process(class_dir_path, dst_root_path, fps=-1, size=240):
     dst_class_path = dst_root_path / class_dir_path.name
     dst_class_path.mkdir(exist_ok=True)
 
+    existing_videos = []
     for video_file_path in sorted(class_dir_path.iterdir()):
-        video_process(video_file_path, dst_class_path, class_dir_path, fps, size)
+        video_process(video_file_path, dst_class_path, class_dir_path, existing_videos, fps, size)
 
 
 if __name__ == '__main__':
