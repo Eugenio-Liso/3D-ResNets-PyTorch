@@ -19,8 +19,6 @@ def video_process(video_file_path, dst_root_path, class_dir_path, existing_video
                         "script.".format(video_file_path))
 
     str_video = str(video_file_path)
-    if str_video == 'v_W-poAYW1pb0_42.0_44.0':
-        print("asd")
     num_of_dots = str_video.split("/")[-1].count('.')
 
     if num_of_dots == 0:
