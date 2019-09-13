@@ -39,7 +39,7 @@ def convert_splits_to_dict(split_file_path, video_with_label):
 def convert_dataset_to_json(output_splits_path, frames_dir, video_with_label, target_classes):
     database = convert_splits_to_dict(output_splits_path, video_with_label)
 
-    dst_data = {'labels': list(target_classes), 'database': {}}
+    dst_data = {'labels': sorted(list(target_classes)), 'database': {}}
     dst_data['database'].update(database)
 
     for k, v in dst_data['database'].items():
