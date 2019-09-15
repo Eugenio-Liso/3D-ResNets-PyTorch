@@ -28,9 +28,10 @@ def hou_min_sec(millis):
     minutes = (millis / (1000 * 60)) % 60
     minutes = int(minutes)
     hours = millis / (1000 * 60 * 60)
+    hours = int(hours)
 
     msecs = millis % 1000
-    return "%d:%d:%d.%d" % (hours, minutes, seconds, msecs)
+    return "%s:%s:%s.%s" % (str(hours).zfill(2), str(minutes).zfill(2), str(seconds).zfill(2), str(msecs).zfill(3))
 
 
 def _supermakedirs(path, mode):
