@@ -209,10 +209,10 @@ if __name__ == '__main__':
                         default=None,
                         type=Path,
                         help='Directory path of the video frames')
-    parser.add_argument('--augmented_data',
+    parser.add_argument('--augmented_tagged_data',
                         action='store_true',
-                        help='This setting should be used ONLY when the input data is augmented WITHOUT any --video_path_* '
-                             'parameter')
+                        help='This setting should be used ONLY when the input data is augmented'
+                             'or manually tagged WITHOUT any --video_path_* parameter')
 
     args = parser.parse_args()
 
