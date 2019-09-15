@@ -38,19 +38,13 @@ if __name__ == '__main__':
             input_json_annotations.append(data_loaded)
 
     target_classes_size = 0
-    target_classes = []
+    target_classes = set()
     databases = []
     for input_json in input_json_annotations:
         labels = input_json['labels']
-        labels_size = len(labels)
 
-        if target_classes_size == 0:
-            target_classes_size = labels_size
-        elif target_classes_size != labels_size:
-            raise Exception("One json has a different set of labels: {}".format(labels))
-
-        if not target_classes:
-            target_classes = labels
+        for label in labels:
+            target_classes.update(label)
 
         database = input_json['database']
         databases.append(database)
