@@ -42,9 +42,7 @@ if __name__ == '__main__':
     databases = []
     for input_json in input_json_annotations:
         labels = input_json['labels']
-
-        for label in labels:
-            target_classes.update(label)
+        target_classes.update(labels)
 
         database = input_json['database']
         databases.append(database)
@@ -53,7 +51,6 @@ if __name__ == '__main__':
     merged_db = {}
     [merged_db.update({**db}) for db in databases]
 
-    print(merged_db)
     output_merge = {'labels': sorted(list(target_classes)), 'database': merged_db}
 
     with output_merged_annotations.open('w+') as dst_file:
