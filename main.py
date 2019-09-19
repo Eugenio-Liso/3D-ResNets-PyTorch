@@ -25,7 +25,8 @@ from utils import Logger, worker_init_fn, get_lr
 from training import train_epoch
 from validation import val_epoch
 import inference
-
+import time
+from datetime import datetime
 
 def json_serial(obj):
     if isinstance(obj, Path):
@@ -255,6 +256,9 @@ def save_checkpoint(save_file_path, epoch, arch, model, optimizer, scheduler):
 if __name__ == '__main__':
     opt = get_opt()
 
+    # datetime object containing current date and time
+    now = datetime.now()
+
     opt.device = torch.device('cpu' if opt.no_cuda else 'cuda')
     if not opt.no_cuda:
         cudnn.benchmark = True
@@ -297,6 +301,8 @@ if __name__ == '__main__':
         tb_writer = None
 
     prev_val_loss = None
+
+    start_time_training = time.time()
     for i in range(opt.begin_epoch, opt.n_epochs + 1):
         if not opt.no_train:
             current_lr = get_lr(optimizer)
@@ -317,6 +323,10 @@ if __name__ == '__main__':
             scheduler.step()
         elif opt.lr_scheduler == 'plateau':
             scheduler.step(prev_val_loss)
+    training_time = time.time() - start_time_training
+
+    with open(opt.result_path / 'info.log', 'a') as out:
+        out.write(f'Training phase started on {now} has lasted {training_time/60} minutes \n')
 
     if opt.inference:
         inference_loader, inference_class_names = get_inference_utils(opt)
