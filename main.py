@@ -330,10 +330,18 @@ if __name__ == '__main__':
 
     if opt.tensorboard:
         from torch.utils.tensorboard import SummaryWriter
+
+        import socket
+        from datetime import datetime
+        import os
+        current_time = datetime.now().strftime('%b%d_%H-%M-%S')
+        log_dir = os.path.join(
+            opt.result_path, current_time + '_' + socket.gethostname())
+
         if opt.begin_epoch == 1:
-            tb_writer = SummaryWriter(log_dir=opt.result_path)
+            tb_writer = SummaryWriter(log_dir=log_dir)
         else:
-            tb_writer = SummaryWriter(log_dir=opt.result_path,
+            tb_writer = SummaryWriter(log_dir=log_dir,
                                       purge_index=opt.begin_epoch)
     else:
         tb_writer = None
@@ -361,10 +369,13 @@ if __name__ == '__main__':
             scheduler.step()
         elif opt.lr_scheduler == 'plateau':
             scheduler.step(prev_val_loss)
+
+    if tb_writer is not None:
+        tb_writer.close()
     training_time = time.time() - start_time_training
 
     with open(opt.result_path / 'info.log', 'a') as out:
-        out.write(f'Training phase started on {now} has lasted {training_time/60} minutes \n')
+        out.write(f'Training phase started on {now} has lasted {training_time / 60} minutes \n')
 
     if opt.inference:
         inference_loader, inference_class_names = get_inference_utils(opt)

@@ -7,7 +7,10 @@
 * [PyTorch](http://pytorch.org/)
 
 ```bash
-conda install pandas=0.25.1 scikit-learn=0.21.2 h5py=2.9.0 pytorch=1.0.0 torchvision=0.2.1 cuda80=1.0 -c soumith
+conda install pytorch=1.1.0 future=0.17.1 tensorboard=1.14.0 scikit-image=0.15.0 pandas=0.25.1 scikit-learn=0.21.2 h5py=2.9.0 torchvision=0.2.1 cuda80=1.0 -c soumith
+
+conda install pip
+pip install opencv-python==3.4.5.20
 ```
 
 * FFmpeg, FFprobe (should be installed by default on a Linux system)
