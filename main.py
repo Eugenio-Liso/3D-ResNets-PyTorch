@@ -1,7 +1,6 @@
 import json
 import random
 import time
-from datetime import datetime
 from pathlib import Path
 
 import numpy as np
@@ -28,6 +27,9 @@ from training import train_epoch
 from utils import Logger, worker_init_fn, get_lr
 from validation import val_epoch
 from vidaug import augmentors as va
+import socket
+from datetime import datetime
+import os
 
 
 def json_serial(obj):
@@ -60,9 +62,6 @@ def get_opt():
     opt.arch = '{}-{}'.format(opt.model, opt.model_depth)
     opt.begin_epoch = 1
     opt.mean, opt.std = get_mean_std(opt.value_scale, dataset=opt.mean_dataset)
-    print(opt)
-    with (opt.result_path / 'opts.json').open('w') as opt_file:
-        json.dump(vars(opt), opt_file, default=json_serial)
 
     return opt
 
@@ -297,6 +296,16 @@ if __name__ == '__main__':
     # datetime object containing current date and time
     now = datetime.now()
 
+    current_time_str = now.strftime('%b%d_%H-%M-%S')
+    log_dir_current_run = os.path.join(
+        opt.result_path, current_time_str + '_' + socket.gethostname())
+
+    os.makedirs(log_dir_current_run)
+    opt.result_path = Path(log_dir_current_run)
+
+    with (opt.result_path / 'opts.json').open('w') as opt_file:
+        json.dump(vars(opt), opt_file, default=json_serial)
+
     opt.device = torch.device('cpu' if opt.no_cuda else 'cuda')
     if not opt.no_cuda:
         cudnn.benchmark = True
@@ -331,17 +340,10 @@ if __name__ == '__main__':
     if opt.tensorboard:
         from torch.utils.tensorboard import SummaryWriter
 
-        import socket
-        from datetime import datetime
-        import os
-        current_time = datetime.now().strftime('%b%d_%H-%M-%S')
-        log_dir = os.path.join(
-            opt.result_path, current_time + '_' + socket.gethostname())
-
         if opt.begin_epoch == 1:
-            tb_writer = SummaryWriter(log_dir=log_dir)
+            tb_writer = SummaryWriter(log_dir=log_dir_current_run)
         else:
-            tb_writer = SummaryWriter(log_dir=log_dir,
+            tb_writer = SummaryWriter(log_dir=log_dir_current_run,
                                       purge_index=opt.begin_epoch)
     else:
         tb_writer = None
