@@ -66,9 +66,9 @@ def generate_split(input_args):
     video_path_train = input_args.video_path_training
     video_path_validation = input_args.video_path_validation
     video_path_trainval = args.video_path_trainval
-    augmented_data = args.augmented_data
+    augmented_tagged_unsplitted_data = args.augmented_tagged_unsplitted_data
 
-    if augmented_data:
+    if augmented_tagged_unsplitted_data:
         result_video_and_subset_aug, target_classes_aug, video_with_label_aug = \
             parse_subset_data(seed,
                               split_size,
@@ -209,19 +209,19 @@ if __name__ == '__main__':
                         default=None,
                         type=Path,
                         help='Directory path of the video frames')
-    parser.add_argument('--augmented_tagged_data',
+    parser.add_argument('--augmented_tagged_unsplitted_data',
                         action='store_true',
-                        help='This setting should be used ONLY when the input data is augmented'
-                             'or manually tagged WITHOUT any --video_path_* parameter')
+                        help='This setting should be used ONLY when the input data is augmented, '
+                             'manually tagged or WITHOUT any --video_path_* parameter')
 
     args = parser.parse_args()
 
     video_path_train = args.video_path_training
     video_path_validation = args.video_path_validation
     video_path_trainval = args.video_path_trainval
-    augmented_data = args.augmented_data
+    augmented_tagged_unsplitted_data = args.augmented_tagged_unsplitted_data
 
-    if not augmented_data:
+    if not augmented_tagged_unsplitted_data:
         if video_path_train and video_path_validation:
             maybe_fix_duplicates(video_path_train)
             maybe_fix_duplicates(video_path_validation)
@@ -243,15 +243,15 @@ if __name__ == '__main__':
 
     if video_path_train and video_path_validation:
         json_training = convert_dataset_to_json(output_splits_path, frames_dir, video_with_label,
-                                                target_classes, augmented_data)
+                                                target_classes, augmented_tagged_unsplitted_data)
 
         json_validation = convert_dataset_to_json(output_splits_path, frames_dir, video_with_label,
-                                                  target_classes, augmented_data)
+                                                  target_classes, augmented_tagged_unsplitted_data)
         with output_annotations_path.open('w+') as dst_file:
             data_to_write = {**json_training, **json_validation}
             json.dump(data_to_write, dst_file, indent=4)
     else:
         json_trainval = convert_dataset_to_json(output_splits_path, frames_dir, video_with_label,
-                                                target_classes, augmented_data)
+                                                target_classes, augmented_tagged_unsplitted_data)
         with output_annotations_path.open('w+') as dst_file:
             json.dump(json_trainval, dst_file, indent=4)
