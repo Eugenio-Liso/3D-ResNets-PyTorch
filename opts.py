@@ -260,7 +260,16 @@ def parse_opts():
     parser.add_argument('--tensorboard',
                         action='store_true',
                         help='If true, output tensorboard log file.')
-
+    parser.add_argument('--augmentation_mode',
+                        type=str,
+                        default=None,
+                        help='Specifies how augmentation is applied. Possible types are: oneOf -> one of the filters is '
+                             'applied at random; allOf -> applies all filters, sequentially. someOf -> applies some of the'
+                             'augmentation filters. NOTE: This setting disables other spatial/temporal transformations')
+    parser.add_argument('--augmentation_someOf_num_filters',
+                        type=int,
+                        default=3,
+                        help='Specifies the number of the applied filters if the augmentation_mode is set to someOf')
     args = parser.parse_args()
 
     return args

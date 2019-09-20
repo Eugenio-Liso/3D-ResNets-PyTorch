@@ -1,32 +1,34 @@
-from pathlib import Path
 import json
 import random
+import time
+from datetime import datetime
+from pathlib import Path
 
 import numpy as np
 import torch
+import torchvision
+from torch.backends import cudnn
 from torch.nn import CrossEntropyLoss
 from torch.optim import SGD, lr_scheduler
-from torch.backends import cudnn
-import torchvision
 
-from opts import parse_opts
-from model import generate_model
+import inference
+from dataset import get_training_data, get_validation_data, get_inference_data
 from mean import get_mean_std
+from model import generate_model
+from opts import parse_opts
 from spatial_transforms import (Compose, Normalize, Resize, CenterCrop,
-                                CornerCrop, MultiScaleCornerCrop,
+                                MultiScaleCornerCrop,
                                 RandomResizedCrop, RandomHorizontalFlip,
                                 ToTensor, ScaleValue, ColorJitter)
-from temporal_transforms import (LoopPadding, TemporalRandomCrop,
+from temporal_transforms import Compose as TemporalCompose
+from temporal_transforms import (TemporalRandomCrop,
                                  TemporalCenterCrop, TemporalEvenCrop,
                                  SlidingWindow, TemporalSubsampling)
-from temporal_transforms import Compose as TemporalCompose
-from dataset import get_training_data, get_validation_data, get_inference_data
-from utils import Logger, worker_init_fn, get_lr
 from training import train_epoch
+from utils import Logger, worker_init_fn, get_lr
 from validation import val_epoch
-import inference
-import time
-from datetime import datetime
+from vidaug import augmentors as va
+
 
 def json_serial(obj):
     if isinstance(obj, Path):
@@ -100,32 +102,61 @@ def get_normalize_method(mean, std, no_mean_norm, no_std_norm):
 
 def get_train_utils(opt, model_parameters):
     assert opt.train_crop in ['random', 'corner', 'center']
+
+    augmentation_mode = opt.augmentation_mode
+    list_of_filters = [
+        # va.RandomResize(scaling_factor=1.1),
+        va.HorizontalFlip(),
+        va.GaussianBlur(sigma=1),
+        va.ElasticTransformation(),
+        va.Add(value=10),
+        va.Multiply(value=2),
+        va.Salt(),
+        va.Pepper()
+    ]
+
+    if augmentation_mode is None:
+        augment_filters = None
+    elif augmentation_mode == 'oneOf':
+        augment_filters = va.OneOf(list_of_filters)
+    elif augmentation_mode == 'allOf':
+        augment_filters = va.Sequential(list_of_filters)
+    elif augmentation_mode == 'someOf':
+        augmentation_someOf_num_filters = opt.augmentation_someOf_num_filters
+        augment_filters = va.SomeOf(list_of_filters, augmentation_someOf_num_filters)
+    else:
+        raise Exception(f"Invalid type of aumgentation: {augmentation_mode}")
+
     spatial_transform = []
-    if opt.train_crop == 'random':
-        spatial_transform.append(
-            RandomResizedCrop(
-                opt.sample_size, (opt.train_crop_min_scale, 1.0),
-                (opt.train_crop_min_ratio, 1.0 / opt.train_crop_min_ratio)))
-    elif opt.train_crop == 'corner':
-        scales = [1.0]
-        scale_step = 1 / (2**(1 / 4))
-        for _ in range(1, 5):
-            scales.append(scales[-1] * scale_step)
-        spatial_transform.append(MultiScaleCornerCrop(opt.sample_size, scales))
-    elif opt.train_crop == 'center':
-        spatial_transform.append(Resize(opt.sample_size))
-        spatial_transform.append(CenterCrop(opt.sample_size))
+    if augment_filters is None:
+        if opt.train_crop == 'random':
+            spatial_transform.append(
+                RandomResizedCrop(
+                    opt.sample_size, (opt.train_crop_min_scale, 1.0),
+                    (opt.train_crop_min_ratio, 1.0 / opt.train_crop_min_ratio)))
+        elif opt.train_crop == 'corner':
+            scales = [1.0]
+            scale_step = 1 / (2 ** (1 / 4))
+            for _ in range(1, 5):
+                scales.append(scales[-1] * scale_step)
+            spatial_transform.append(MultiScaleCornerCrop(opt.sample_size, scales))
+        elif opt.train_crop == 'center':
+            spatial_transform.append(Resize(opt.sample_size))
+            spatial_transform.append(CenterCrop(opt.sample_size))
+
+        if not opt.no_hflip:
+            spatial_transform.append(RandomHorizontalFlip())
+        if opt.colorjitter:
+            spatial_transform.append(ColorJitter())
+
     normalize = get_normalize_method(opt.mean, opt.std, opt.no_mean_norm,
                                      opt.no_std_norm)
-    if not opt.no_hflip:
-        spatial_transform.append(RandomHorizontalFlip())
-    if opt.colorjitter:
-        spatial_transform.append(ColorJitter())
     spatial_transform.append(ToTensor())
     spatial_transform.append(ScaleValue(opt.value_scale))
     spatial_transform.append(normalize)
     spatial_transform = Compose(spatial_transform)
 
+    # Do not set the temporal transformations to NONE
     assert opt.train_t_crop in ['random', 'center']
     temporal_transform = []
     if opt.sample_t_stride > 1:
@@ -138,6 +169,7 @@ def get_train_utils(opt, model_parameters):
 
     training_data = get_training_data(opt.video_path, opt.annotation_path,
                                       opt.dataset, opt.file_type,
+                                      augment_filters,
                                       spatial_transform, temporal_transform)
     train_loader = torch.utils.data.DataLoader(training_data,
                                                batch_size=opt.batch_size,
@@ -174,14 +206,20 @@ def get_train_utils(opt, model_parameters):
 
 
 def get_val_utils(opt):
+    augmentation_mode = opt.augmentation_mode
+
     normalize = get_normalize_method(opt.mean, opt.std, opt.no_mean_norm,
                                      opt.no_std_norm)
-    spatial_transform = Compose([
-        Resize(opt.sample_size),
-        CenterCrop(opt.sample_size),
-        ToTensor(),
-        ScaleValue(opt.value_scale), normalize
-    ])
+    spatial_transform = []
+
+    if augmentation_mode is None:
+        spatial_transform.append(Resize(opt.sample_size))
+        spatial_transform.append(CenterCrop(opt.sample_size))
+
+    spatial_transform.append(ToTensor())
+    spatial_transform.append(ScaleValue(opt.value_scale))
+    spatial_transform.append(normalize)
+    spatial_transform = Compose(spatial_transform)
 
     temporal_transform = []
     if opt.sample_t_stride > 1:

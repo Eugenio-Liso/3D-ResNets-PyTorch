@@ -9,6 +9,7 @@ def get_training_data(video_path,
                       annotation_path,
                       dataset_name,
                       file_type,
+                      augment_filters=None,
                       spatial_transform=None,
                       temporal_transform=None,
                       target_transform=None):
@@ -24,12 +25,13 @@ def get_training_data(video_path,
     else:
         loader = VideoLoaderHDF5()
         video_path_formatter = (lambda root_path, label, video_id: root_path /
-                                label / f'{video_id}.hdf5')
+                                                                   label / f'{video_id}.hdf5')
 
     if dataset_name == 'activitynet':
         training_data = ActivityNet(video_path,
                                     annotation_path,
                                     'training',
+                                    augment_filters=augment_filters,
                                     spatial_transform=spatial_transform,
                                     temporal_transform=temporal_transform,
                                     target_transform=target_transform,
@@ -39,6 +41,7 @@ def get_training_data(video_path,
         training_data = VideoDataset(video_path,
                                      annotation_path,
                                      'training',
+                                     augment_filters=augment_filters,
                                      spatial_transform=spatial_transform,
                                      temporal_transform=temporal_transform,
                                      target_transform=target_transform,
@@ -67,7 +70,7 @@ def get_validation_data(video_path,
     else:
         loader = VideoLoaderHDF5()
         video_path_formatter = (lambda root_path, label, video_id: root_path /
-                                label / f'{video_id}.hdf5')
+                                                                   label / f'{video_id}.hdf5')
 
     if dataset_name == 'activitynet':
         validation_data = ActivityNet(video_path,
@@ -113,7 +116,7 @@ def get_inference_data(video_path,
     else:
         loader = VideoLoaderHDF5()
         video_path_formatter = (lambda root_path, label, video_id: root_path /
-                                label / f'{video_id}.hdf5')
+                                                                   label / f'{video_id}.hdf5')
 
     if inference_subset == 'train':
         subset = 'training'

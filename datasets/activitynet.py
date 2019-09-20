@@ -1,8 +1,5 @@
-import math
 import json
-
-import torch
-import torch.utils.data as data
+import math
 
 from .loader import VideoLoader
 from .videodataset import VideoDataset
@@ -56,12 +53,13 @@ class ActivityNet(VideoDataset):
             root_path,
             annotation_path,
             subset,
+            augment_filters=None,
             spatial_transform=None,
             temporal_transform=None,
             target_transform=None,
             video_loader=None,
             video_path_formatter=(
-                lambda root_path, label, video_id: root_path / f'v_{video_id}'),
+                    lambda root_path, label, video_id: root_path / f'v_{video_id}'),
             image_name_formatter=lambda x: f'image_{x:05d}.jpg',
             is_untrimmed_setting=False):
         if is_untrimmed_setting:
@@ -71,6 +69,7 @@ class ActivityNet(VideoDataset):
             self.data, self.class_names = self.__make_dataset(
                 root_path, annotation_path, subset, video_path_formatter)
 
+        self.augment_filters = augment_filters
         self.spatial_transform = spatial_transform
         self.temporal_transform = temporal_transform
         self.target_transform = target_transform

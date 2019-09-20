@@ -1,5 +1,4 @@
 import json
-import functools
 
 import torch
 import torch.utils.data as data
@@ -35,17 +34,19 @@ class VideoDataset(data.Dataset):
                  root_path,
                  annotation_path,
                  subset,
+                 augment_filters=None,
                  spatial_transform=None,
                  temporal_transform=None,
                  target_transform=None,
                  video_loader=None,
                  video_path_formatter=(lambda root_path, label, video_id:
-                                       root_path / label / video_id),
+                 root_path / label / video_id),
                  image_name_formatter=lambda x: f'image_{x:05d}.jpg',
                  target_type='label'):
         self.data, self.class_names = self.__make_dataset(
             root_path, annotation_path, subset, video_path_formatter)
 
+        self.augment_filters = augment_filters
         self.spatial_transform = spatial_transform
         self.temporal_transform = temporal_transform
         self.target_transform = target_transform
@@ -102,6 +103,9 @@ class VideoDataset(data.Dataset):
 
     def __loading(self, path, frame_indices):
         clip = self.loader(path, frame_indices)
+
+        if self.augment_filters is not None:
+            clip = self.augment_filters(clip)
         if self.spatial_transform is not None:
             self.spatial_transform.randomize_parameters()
             clip = [self.spatial_transform(img) for img in clip]
