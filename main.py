@@ -127,26 +127,25 @@ def get_train_utils(opt, model_parameters):
         raise Exception(f"Invalid type of aumgentation: {augmentation_mode}")
 
     spatial_transform = []
-    if augment_filters is None:
-        if opt.train_crop == 'random':
-            spatial_transform.append(
-                RandomResizedCrop(
-                    opt.sample_size, (opt.train_crop_min_scale, 1.0),
-                    (opt.train_crop_min_ratio, 1.0 / opt.train_crop_min_ratio)))
-        elif opt.train_crop == 'corner':
-            scales = [1.0]
-            scale_step = 1 / (2 ** (1 / 4))
-            for _ in range(1, 5):
-                scales.append(scales[-1] * scale_step)
-            spatial_transform.append(MultiScaleCornerCrop(opt.sample_size, scales))
-        elif opt.train_crop == 'center':
-            spatial_transform.append(Resize(opt.sample_size))
-            spatial_transform.append(CenterCrop(opt.sample_size))
+    if opt.train_crop == 'random':
+        spatial_transform.append(
+            RandomResizedCrop(
+                opt.sample_size, (opt.train_crop_min_scale, 1.0),
+                (opt.train_crop_min_ratio, 1.0 / opt.train_crop_min_ratio)))
+    elif opt.train_crop == 'corner':
+        scales = [1.0]
+        scale_step = 1 / (2 ** (1 / 4))
+        for _ in range(1, 5):
+            scales.append(scales[-1] * scale_step)
+        spatial_transform.append(MultiScaleCornerCrop(opt.sample_size, scales))
+    elif opt.train_crop == 'center':
+        spatial_transform.append(Resize(opt.sample_size))
+        spatial_transform.append(CenterCrop(opt.sample_size))
 
-        if not opt.no_hflip:
-            spatial_transform.append(RandomHorizontalFlip())
-        if opt.colorjitter:
-            spatial_transform.append(ColorJitter())
+    if not opt.no_hflip:
+        spatial_transform.append(RandomHorizontalFlip())
+    if opt.colorjitter:
+        spatial_transform.append(ColorJitter())
 
     normalize = get_normalize_method(opt.mean, opt.std, opt.no_mean_norm,
                                      opt.no_std_norm)
@@ -209,15 +208,11 @@ def get_val_utils(opt):
 
     normalize = get_normalize_method(opt.mean, opt.std, opt.no_mean_norm,
                                      opt.no_std_norm)
-    spatial_transform = []
-
-    if augmentation_mode is None:
-        spatial_transform.append(Resize(opt.sample_size))
-        spatial_transform.append(CenterCrop(opt.sample_size))
-
-    spatial_transform.append(ToTensor())
-    spatial_transform.append(ScaleValue(opt.value_scale))
-    spatial_transform.append(normalize)
+    spatial_transform = [Resize(opt.sample_size),
+                         CenterCrop(opt.sample_size),
+                         ToTensor(),
+                         ScaleValue(opt.value_scale),
+                         normalize]
     spatial_transform = Compose(spatial_transform)
 
     temporal_transform = []
