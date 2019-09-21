@@ -61,12 +61,10 @@ class AllOf(object):
         self.transforms = transforms
 
     def __call__(self, clip):
-        output_clips = []
         for t in self.transforms:
-            output_clip_of_t = t(clip)
-            output_clips.append(output_clip_of_t)
+            clip = t(clip)
 
-        return output_clips
+        return clip
 
 class OneOf(object):
     """
