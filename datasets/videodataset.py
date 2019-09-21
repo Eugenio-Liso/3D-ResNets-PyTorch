@@ -105,7 +105,9 @@ class VideoDataset(data.Dataset):
         clip = self.loader(path, frame_indices)
 
         if self.augment_filters is not None:
+            original_clip_size = len(clip)
             clip = self.augment_filters(clip)
+            assert original_clip_size == len(clip), "The augmented clip should have the same dimension"
         if self.spatial_transform is not None:
             self.spatial_transform.randomize_parameters()
             clip = [self.spatial_transform(img) for img in clip]
