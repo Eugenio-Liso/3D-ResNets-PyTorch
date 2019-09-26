@@ -109,3 +109,4 @@ ENV/
 .idea
 pretrained
 training
+results/
