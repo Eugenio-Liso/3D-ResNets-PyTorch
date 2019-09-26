@@ -369,10 +369,12 @@ if __name__ == '__main__':
 
     if tb_writer is not None:
         tb_writer.close()
-    training_time = time.time() - start_time_training
+    end_time = time.time()
+    training_time = end_time - start_time_training
 
     with open(opt.result_path / 'info.log', 'a') as out:
-        out.write(f'Training phase started on {now} has lasted {training_time / 60} minutes \n')
+        out.write(f'Training phase started on {now} has lasted {training_time / 60} minutes, finishing at '
+                  f'{datetime.fromtimestamp(end_time)} \n')
 
     if opt.inference:
         inference_loader, inference_class_names = get_inference_utils(opt)
