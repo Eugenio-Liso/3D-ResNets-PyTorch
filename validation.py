@@ -55,7 +55,7 @@ def val_epoch(epoch,
     logger.log({'epoch': epoch, 'loss': losses.avg, 'acc': accuracies.avg})
 
     if tb_writer is not None:
-        tb_writer.add_scalar('val/loss', losses.avg, epoch)
-        tb_writer.add_scalar('val/acc', accuracies.avg, epoch)
+        tb_writer.add_scalar('Validation/Loss per epoch', losses.avg, epoch)
+        tb_writer.add_scalar('Validation/Accuracy per epoch', accuracies.avg, epoch)
 
     return losses.avg
