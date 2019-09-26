@@ -3,7 +3,7 @@ import time
 import os
 import sys
 
-from utils import AverageMeter, calculate_accuracy
+from utils import AverageMeter, calculate_accuracy, calculate_precision_and_recall
 
 
 def train_epoch(epoch,
@@ -32,6 +32,10 @@ def train_epoch(epoch,
     losses = AverageMeter()
     accuracies = AverageMeter()
 
+    precs = AverageMeter()
+    recs = AverageMeter()
+    fscores = AverageMeter()
+
     end_time = time.time()
     for i, (inputs, targets) in enumerate(data_loader):
         data_time.update(time.time() - end_time)
@@ -40,6 +44,11 @@ def train_epoch(epoch,
         outputs = model(inputs)
         loss = criterion(outputs, targets)
         acc = calculate_accuracy(outputs, targets)
+
+        prec, rec, fscore = calculate_precision_and_recall(outputs, targets)
+        precs.update(prec, inputs.size(0))
+        recs.update(rec, inputs.size(0))
+        fscores.update(fscore, inputs.size(0))
 
         losses.update(loss.item(), inputs.size(0))
         accuracies.update(acc, inputs.size(0))
@@ -56,7 +65,10 @@ def train_epoch(epoch,
             'iter': (epoch - 1) * len(data_loader) + (i + 1),
             'loss': losses.val,
             'acc': accuracies.val,
-            'lr': current_lr
+            'lr': current_lr,
+            'prec': prec,
+            'rec': rec,
+            'fscore': fscore
         })
 
         print('Epoch: [{0}][{1}/{2}]\t'
@@ -76,14 +88,25 @@ def train_epoch(epoch,
     losses_avg = losses.avg
     accuracies_avg = accuracies.avg
 
+    precs_avg = precs.avg
+    recs_avg = recs.avg
+    fscores_avg = fscores.avg
+
     epoch_logger.log({
         'epoch': epoch,
         'loss': losses_avg,
         'acc': accuracies_avg,
-        'lr': current_lr
+        'lr': current_lr,
+        'prec': precs_avg,
+        'rec': recs_avg,
+        'fscore': fscores_avg
     })
 
     if tb_writer is not None:
         tb_writer.add_scalar('Training/Loss per epoch', losses_avg, epoch)
         tb_writer.add_scalar('Training/Accuracy per epoch', accuracies_avg, epoch)
         tb_writer.add_scalar('Training/Learning Rate per epoch', current_lr, epoch)
+
+        tb_writer.add_scalar('Training/Precision per epoch', precs_avg, epoch)
+        tb_writer.add_scalar('Training/Recall per epoch', recs_avg, epoch)
+        tb_writer.add_scalar('Training/F-Score per epoch', fscores_avg, epoch)

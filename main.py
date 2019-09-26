@@ -176,9 +176,9 @@ def get_train_utils(opt, model_parameters):
                                                pin_memory=True,
                                                worker_init_fn=worker_init_fn)
     train_logger = Logger(opt.result_path / 'train.log',
-                          ['epoch', 'loss', 'acc', 'lr'])
+                          ['epoch', 'loss', 'acc', 'lr', 'prec', 'rec', 'fscore'])
     train_batch_logger = Logger(opt.result_path / 'train_batch.log',
-                                ['epoch', 'batch', 'iter', 'loss', 'acc', 'lr'])
+                                ['epoch', 'batch', 'iter', 'loss', 'acc', 'lr', 'prec', 'rec', 'fscore'])
 
     if opt.nesterov:
         dampening = 0
@@ -233,7 +233,7 @@ def get_val_utils(opt):
                                              pin_memory=True,
                                              worker_init_fn=worker_init_fn,
                                              collate_fn=collate_fn)
-    val_logger = Logger(opt.result_path / 'val.log', ['epoch', 'loss', 'acc'])
+    val_logger = Logger(opt.result_path / 'val.log', ['epoch', 'loss', 'acc', 'prec', 'rec', 'fscore'])
 
     return val_loader, val_logger
 

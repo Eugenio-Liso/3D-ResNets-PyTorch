@@ -2,7 +2,7 @@ import torch
 import time
 import sys
 
-from utils import AverageMeter, calculate_accuracy
+from utils import AverageMeter, calculate_accuracy, calculate_precision_and_recall
 
 
 def val_epoch(epoch,
@@ -21,6 +21,10 @@ def val_epoch(epoch,
     losses = AverageMeter()
     accuracies = AverageMeter()
 
+    precs = AverageMeter()
+    recs = AverageMeter()
+    fscores = AverageMeter()
+
     end_time = time.time()
 
     with torch.no_grad():
@@ -31,6 +35,11 @@ def val_epoch(epoch,
             outputs = model(inputs)
             loss = criterion(outputs, targets)
             acc = calculate_accuracy(outputs, targets)
+
+            prec, rec, fscore = calculate_precision_and_recall(outputs, targets)
+            precs.update(prec, inputs.size(0))
+            recs.update(rec, inputs.size(0))
+            fscores.update(fscore, inputs.size(0))
 
             losses.update(loss.item(), inputs.size(0))
             accuracies.update(acc, inputs.size(0))
@@ -52,10 +61,28 @@ def val_epoch(epoch,
 
             end_time = time.time()
 
-    logger.log({'epoch': epoch, 'loss': losses.avg, 'acc': accuracies.avg})
+    losses_avg = losses.avg
+    accuracies_avg = accuracies.avg
+
+    precs_avg = precs.avg
+    recs_avg = recs.avg
+    fscores_avg = fscores.avg
+
+    logger.log({
+        'epoch': epoch,
+        'loss': losses_avg,
+        'acc': accuracies_avg,
+        'prec': precs_avg,
+        'rec': recs_avg,
+        'fscore': fscores_avg
+    })
 
     if tb_writer is not None:
-        tb_writer.add_scalar('Validation/Loss per epoch', losses.avg, epoch)
-        tb_writer.add_scalar('Validation/Accuracy per epoch', accuracies.avg, epoch)
+        tb_writer.add_scalar('Validation/Loss per epoch', losses_avg, epoch)
+        tb_writer.add_scalar('Validation/Accuracy per epoch', accuracies_avg, epoch)
+
+        tb_writer.add_scalar('Validation/Precision per epoch', precs_avg, epoch)
+        tb_writer.add_scalar('Validation/Recall per epoch', recs_avg, epoch)
+        tb_writer.add_scalar('Validation/F-Score per epoch', fscores_avg, epoch)
 
     return losses.avg

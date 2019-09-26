@@ -63,11 +63,13 @@ def calculate_accuracy(outputs, targets):
 def calculate_precision_and_recall(outputs, targets, pos_label=1):
     with torch.no_grad():
         _, pred = outputs.topk(1, 1, largest=True, sorted=True)
-        precision, recall, _, _ = precision_recall_fscore_support(
+        precision, recall, fscore, _ = precision_recall_fscore_support(
             targets.view(-1, 1).cpu().numpy(),
             pred.cpu().numpy())
 
-        return precision[pos_label], recall[pos_label]
+        # print(f"prec: {precision} - recall: {recall} - targets: {targets} - pred: {pred}")
+
+        return precision.mean(), recall.mean(), fscore.mean()
 
 
 def worker_init_fn(worker_id):
