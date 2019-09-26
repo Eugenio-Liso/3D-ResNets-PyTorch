@@ -73,14 +73,17 @@ def train_epoch(epoch,
 
         end_time = time.time()
 
+    losses_avg = losses.avg
+    accuracies_avg = accuracies.avg
+
     epoch_logger.log({
         'epoch': epoch,
-        'loss': losses.avg,
-        'acc': accuracies.avg,
+        'loss': losses_avg,
+        'acc': accuracies_avg,
         'lr': current_lr
     })
 
     if tb_writer is not None:
-        tb_writer.add_scalar('Training/Loss per epoch', losses.avg, epoch)
-        tb_writer.add_scalar('Training/Accuracy per epoch', accuracies.avg, epoch)
+        tb_writer.add_scalar('Training/Loss per epoch', losses_avg, epoch)
+        tb_writer.add_scalar('Training/Accuracy per epoch', accuracies_avg, epoch)
         tb_writer.add_scalar('Training/Learning Rate per epoch', current_lr, epoch)
