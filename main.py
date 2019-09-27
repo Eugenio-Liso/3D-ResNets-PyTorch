@@ -297,9 +297,9 @@ if __name__ == '__main__':
         cudnn.benchmark = True
     if opt.accimage:
         torchvision.set_image_backend('accimage')
-    random.seed(opt.manual_seed)
-    np.random.seed(opt.manual_seed)
-    torch.manual_seed(opt.manual_seed)
+    random.seed(opt.seed)
+    np.random.seed(opt.seed)
+    torch.manual_seed(opt.seed)
 
     model, parameters = generate_model(opt)
     print(model)

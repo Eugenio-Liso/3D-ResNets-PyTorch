@@ -4,31 +4,31 @@ from pathlib import Path
 
 def parse_opts():
     parser = argparse.ArgumentParser()
-    # parser.add_argument('--root_path',
-    #                     default=None,
-    #                     type=Path,
-    #                     help='Root directory path')
+
     parser.add_argument('--video_path',
                         default=None,
                         type=Path,
+                        required=True,
                         help='Directory path of videos')
     parser.add_argument('--annotation_path',
                         default=None,
                         type=Path,
+                        required=True,
                         help='Annotation file path')
     parser.add_argument('--result_path',
                         default=None,
+                        required=True,
                         type=Path,
                         help='Result directory path')
     parser.add_argument(
         '--dataset',
-        default='kinetics',
+        default='generic',
         type=str,
-        help='Used dataset (activitynet | kinetics | ucf101 | hmdb51)')
+        help='Used dataset (activitynet | kinetics | ucf101 | hmdb51 | generic)')
     parser.add_argument(
         '--n_classes',
-        default=400,
         type=int,
+        required=True,
         help=
         'Number of classes (activitynet: 200, kinetics: 400 or 600, ucf101: 101, hmdb51: 51)'
     )
@@ -92,8 +92,7 @@ def parse_opts():
     parser.add_argument('--learning_rate',
                         default=0.1,
                         type=float,
-                        help=('Initial learning rate'
-                              '(divided by 10 while training by lr scheduler)'))
+                        help='Initial learning rate')
     parser.add_argument('--amsgrad', action='store_true', help='If the variant AMSGRAD should be used. Applicable '
                                                                'only to ADAM optimizer')
     parser.add_argument('--momentum', default=0.9, type=float, help='Momentum')
@@ -152,8 +151,8 @@ def parse_opts():
         help='Patience of LR scheduler. See documentation of ReduceLROnPlateau.'
     )
     parser.add_argument('--batch_size',
-                        default=128,
                         type=int,
+                        required=True,
                         help='Batch Size')
     parser.add_argument(
         '--inference_batch_size',
@@ -162,8 +161,8 @@ def parse_opts():
         help='Batch Size for inference. 0 means this is the same as batch_size.'
     )
     parser.add_argument('--n_epochs',
-                        default=200,
                         type=int,
+                        required=True,
                         help='Number of total epochs to run')
     parser.add_argument('--n_val_samples',
                         default=3,
@@ -209,17 +208,17 @@ def parse_opts():
                         type=int,
                         help='Number of threads for multi-thread loading')
     parser.add_argument('--checkpoint',
-                        default=10,
                         type=int,
+                        required=True,
                         help='Trained model is saved at every this epochs.')
     parser.add_argument(
         '--model',
-        default='resnet',
         type=str,
+        required=True,
         help='(resnet | preresnet | wideresnet | resnext | densenet | ')
     parser.add_argument('--model_depth',
-                        default=18,
                         type=int,
+                        required=True,
                         help='Depth of resnet (10 | 18 | 34 | 50 | 101)')
     parser.add_argument('--conv1_t_size',
                         default=7,
@@ -244,9 +243,9 @@ def parse_opts():
                         default=32,
                         type=int,
                         help='ResNeXt cardinality')
-    parser.add_argument('--manual_seed',
-                        default=1,
+    parser.add_argument('--seed',
                         type=int,
+                        required=True,
                         help='Manually set random seed')
     parser.add_argument('--accimage',
                         action='store_true',
@@ -267,7 +266,7 @@ def parse_opts():
                         default=None,
                         help='Specifies how augmentation is applied. Possible types are: oneOf -> one of the filters is '
                              'applied at random; allOf -> applies all filters, sequentially. someOf -> applies some of the'
-                             'augmentation filters. NOTE: This setting disables other spatial/temporal transformations')
+                             'augmentation filters; None -> No filters applied. ')
     parser.add_argument('--augmentation_someOf_num_filters',
                         type=int,
                         default=3,
