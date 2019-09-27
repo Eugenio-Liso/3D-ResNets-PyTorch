@@ -282,8 +282,15 @@ oppure con --split_size
 
 ### TRAINING 
 
-**N.B**: DO NOT USE A DIFFERENT OPTIMIZER WHEN RESUMING A TRAINING!!!
+#### Resuming training 
+**N.B**: DO NOT USE A DIFFERENT OPTIMIZER WHEN RESUMING A TRAINING!!! Otherwise training WILL crash
 
+Caveat: Log files, after resuming, will be replaced by new files starting with the current epoch. If you want to keep 
+the old files, please remove and store them in a new safe place. 
+
+Instead, Tensorboard will display only the most recent metric points, in such a way that the displayed charts 
+will be updated with the new resumed epochs.
+ 
 #### resnet-34
 
 ```bash

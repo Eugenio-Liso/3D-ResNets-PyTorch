@@ -40,15 +40,6 @@ def json_serial(obj):
 def get_opt():
     opt = parse_opts()
 
-    # if opt.root_path is not None:
-    #     opt.video_path = opt.root_path / opt.video_path
-    #     opt.annotation_path = opt.root_path / opt.annotation_path
-    #     opt.result_path = opt.root_path / opt.result_path
-    #     if opt.resume_path is not None:
-    #         opt.resume_path = opt.root_path / opt.resume_path
-    #     if opt.pretrain_path is not None:
-    #         opt.pretrain_path = opt.root_path / opt.pretrain_path
-
     if opt.pretrain_path is not None:
         opt.n_finetune_classes = opt.n_classes
         opt.n_classes = opt.n_pretrain_classes
@@ -71,7 +62,7 @@ def resume(resume_path,
            model,
            optimizer=None,
            scheduler=None):
-    print('loading checkpoint {}'.format(resume_path))
+    print('Loading checkpoint from path: {}'.format(resume_path))
     checkpoint = torch.load(resume_path)
     assert arch == checkpoint['arch']
 
@@ -82,7 +73,8 @@ def resume(resume_path,
     if scheduler is not None and 'scheduler' in checkpoint:
         scheduler.load_state_dict(checkpoint['scheduler'])
 
-    return begin_epoch, model, optimizer, scheduler
+    previous_log_dir = checkpoint['log_dir']
+    return begin_epoch, model, optimizer, scheduler, previous_log_dir
 
 
 def get_normalize_method(mean, std, no_mean_norm, no_std_norm):
@@ -174,10 +166,6 @@ def get_train_utils(opt, model_parameters):
                                                num_workers=opt.n_threads,
                                                pin_memory=True,
                                                worker_init_fn=worker_init_fn)
-    train_logger = Logger(opt.result_path / 'train.log',
-                          ['epoch', 'loss', 'acc', 'lr', 'prec', 'rec', 'fscore'])
-    train_batch_logger = Logger(opt.result_path / 'train_batch.log',
-                                ['epoch', 'batch', 'iter', 'loss', 'acc', 'lr', 'prec', 'rec', 'fscore'])
 
     if opt.nesterov:
         dampening = 0
@@ -211,12 +199,10 @@ def get_train_utils(opt, model_parameters):
     else:
         raise Exception(f"Learning rate scheduler not supported: {opt.lr_scheduler}")
 
-    return train_loader, train_logger, train_batch_logger, optimizer, scheduler, training_data.class_names
+    return train_loader, optimizer, scheduler, training_data.class_names
 
 
 def get_val_utils(opt):
-    augmentation_mode = opt.augmentation_mode
-
     normalize = get_normalize_method(opt.mean, opt.std, opt.no_mean_norm,
                                      opt.no_std_norm)
     spatial_transform = [Resize(opt.sample_size),
@@ -244,9 +230,8 @@ def get_val_utils(opt):
                                              pin_memory=True,
                                              worker_init_fn=worker_init_fn,
                                              collate_fn=collate_fn)
-    val_logger = Logger(opt.result_path / 'val.log', ['epoch', 'loss', 'acc', 'prec', 'rec', 'fscore'])
 
-    return val_loader, val_logger
+    return val_loader
 
 
 def get_inference_utils(opt):
@@ -285,13 +270,14 @@ def get_inference_utils(opt):
     return inference_loader, inference_data.class_names
 
 
-def save_checkpoint(save_file_path, epoch, arch, model, optimizer, scheduler):
+def save_checkpoint(save_file_path, epoch, arch, model, optimizer, scheduler, log_dir_current_run):
     save_states = {
         'epoch': epoch,
         'arch': arch,
         'state_dict': model.state_dict(),
         'optimizer': optimizer.state_dict(),
-        'scheduler': scheduler.state_dict()
+        'scheduler': scheduler.state_dict(),
+        'log_dir': log_dir_current_run
     }
     torch.save(save_states, save_file_path)
 
@@ -305,12 +291,6 @@ if __name__ == '__main__':
     current_time_str = now.strftime('%b%d_%H-%M-%S')
     log_dir_current_run = os.path.join(
         opt.result_path, current_time_str + '_' + socket.gethostname())
-
-    os.makedirs(log_dir_current_run)
-    opt.result_path = Path(log_dir_current_run)
-
-    with (opt.result_path / 'opts.json').open('w') as opt_file:
-        json.dump(vars(opt), opt_file, default=json_serial)
 
     opt.device = torch.device('cpu' if opt.no_cuda else 'cuda')
     if not opt.no_cuda:
@@ -327,20 +307,33 @@ if __name__ == '__main__':
     criterion = CrossEntropyLoss().to(opt.device)
 
     if not opt.no_train:
-        (train_loader, train_logger, train_batch_logger, optimizer,
-         scheduler, class_names) = get_train_utils(opt, parameters)
+        (train_loader, optimizer, scheduler, class_names) = get_train_utils(opt, parameters)
     if not opt.no_val:
-        val_loader, val_logger = get_val_utils(opt)
+        val_loader = get_val_utils(opt)
 
     if opt.resume_path is not None:
         if not opt.no_train:
-            opt.begin_epoch, model, optimizer, scheduler = resume(
+            opt.begin_epoch, model, optimizer, scheduler, log_dir_current_run = resume(
                 opt.resume_path, opt.arch, model, optimizer,
                 scheduler)
             if opt.overwrite_milestones:
                 scheduler.milestones = opt.multistep_milestones
         else:
-            opt.begin_epoch, model, _, _ = resume(opt.resume_path, opt.arch, model)
+            opt.begin_epoch, model, _, _, log_dir_current_run = resume(opt.resume_path, opt.arch, model)
+
+    os.makedirs(log_dir_current_run, exist_ok=True)
+    opt.result_path = Path(log_dir_current_run)
+
+    if not opt.no_train:
+        train_logger = Logger(opt.result_path / 'train.log',
+                              ['epoch', 'loss', 'acc', 'lr', 'prec', 'rec', 'fscore'])
+        train_batch_logger = Logger(opt.result_path / 'train_batch.log',
+                                    ['epoch', 'batch', 'iter', 'loss', 'acc', 'lr', 'prec', 'rec', 'fscore'])
+    if not opt.no_val:
+        val_logger = Logger(opt.result_path / 'val.log', ['epoch', 'loss', 'acc', 'prec', 'rec', 'fscore'])
+
+    with (opt.result_path / 'opts.json').open('w') as opt_file:
+        json.dump(vars(opt), opt_file, default=json_serial)
 
     if opt.tensorboard:
         from torch.utils.tensorboard import SummaryWriter
@@ -350,7 +343,7 @@ if __name__ == '__main__':
         else:
             tb_writer = SummaryWriter(log_dir=log_dir_current_run,
                                       purge_step=opt.begin_epoch)
-            
+
         # Too hard to make a line break in tensorboard, eh? 
         # https://stackoverflow.com/questions/45016458/tensorflow-tf-summary-text-and-linebreaks
         params_string = \
@@ -376,7 +369,7 @@ if __name__ == '__main__':
             if i % opt.checkpoint == 0:
                 save_file_path = opt.result_path / 'save_{}.pth'.format(i)
                 save_checkpoint(save_file_path, i, opt.arch, model, optimizer,
-                                scheduler)
+                                scheduler, log_dir_current_run)
 
         if not opt.no_val:
             prev_val_loss = val_epoch(i, val_loader, model, criterion,
