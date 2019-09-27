@@ -27,7 +27,7 @@ from temporal_transforms import (TemporalRandomCrop,
                                  TemporalCenterCrop, TemporalEvenCrop,
                                  SlidingWindow, TemporalSubsampling)
 from training import train_epoch
-from utils import Logger, worker_init_fn, get_lr
+from utils import Logger, worker_init_fn, get_lr, serialize
 from validation import val_epoch
 from vidaug import augmentors as va
 
@@ -350,6 +350,16 @@ if __name__ == '__main__':
         else:
             tb_writer = SummaryWriter(log_dir=log_dir_current_run,
                                       purge_step=opt.begin_epoch)
+            
+        # Too hard to make a line break in tensorboard, eh? 
+        # https://stackoverflow.com/questions/45016458/tensorflow-tf-summary-text-and-linebreaks
+        params_string = \
+            f"""{json.dumps(opt, default=serialize, indent=4)}""" \
+                .replace(",", ",  \n") \
+                .replace("{", "{  \n") \
+                .replace("}", "}  \n")
+
+        tb_writer.add_text("Network parameters", params_string)
     else:
         tb_writer = None
 
@@ -379,6 +389,7 @@ if __name__ == '__main__':
 
     if tb_writer is not None:
         tb_writer.close()
+
     end_time = time.time()
     training_time = end_time - start_time_training
 

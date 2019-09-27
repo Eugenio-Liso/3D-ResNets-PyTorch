@@ -5,7 +5,8 @@ from functools import partialmethod
 import torch
 import numpy as np
 from sklearn.metrics import precision_recall_fscore_support
-
+from pathlib import Path
+from torch import device
 # Removes useless warning when precision, recall or fscore are zero
 import warnings
 
@@ -138,3 +139,17 @@ def partialclass(cls, *args, **kwargs):
         __init__ = partialmethod(cls.__init__, *args, **kwargs)
 
     return PartialClass
+
+
+def serialize(obj):
+    """JSON serializer for objects not serializable by default json code"""
+
+    if isinstance(obj, Path):
+        path = str(obj)
+        return path
+
+    if isinstance(obj, device):
+        # For some reason, the ArgumentParser has this type of parameter when dumping the JSON
+        return "<not_used_and_not_serializable>"
+
+    return obj.__dict__
