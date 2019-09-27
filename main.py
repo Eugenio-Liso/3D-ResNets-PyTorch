@@ -380,6 +380,10 @@ if __name__ == '__main__':
         elif opt.lr_scheduler == 'plateau':
             scheduler.step(prev_val_loss)
 
+        if tb_writer is not None:
+            for writer in tb_writer.all_writers.values():
+                writer.flush()
+
     if tb_writer is not None:
         tb_writer.close()
 
