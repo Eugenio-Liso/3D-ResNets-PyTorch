@@ -1,9 +1,8 @@
-import torch
 import time
-import os
-import sys
 
-from utils import AverageMeter, calculate_accuracy, calculate_precision_and_recall
+import numpy as np
+
+from utils import AverageMeter, AverageMeterNumPyArray, calculate_accuracy, calculate_precision_and_recall, class_counts
 
 
 def train_epoch(epoch,
@@ -13,6 +12,7 @@ def train_epoch(epoch,
                 optimizer,
                 device,
                 current_lr,
+                class_names,
                 epoch_logger,
                 batch_logger,
                 tb_writer=None):
@@ -32,9 +32,12 @@ def train_epoch(epoch,
     losses = AverageMeter()
     accuracies = AverageMeter()
 
-    precs = AverageMeter()
-    recs = AverageMeter()
-    fscores = AverageMeter()
+    class_size = len(class_names)
+    precs = AverageMeterNumPyArray(class_size)
+    recs = AverageMeterNumPyArray(class_size)
+    fscores = AverageMeterNumPyArray(class_size)
+    class_idx = list(range(0, class_size))
+    func_class_counts = np.vectorize(class_counts)
 
     end_time = time.time()
     for i, (inputs, targets) in enumerate(data_loader):
@@ -45,10 +48,11 @@ def train_epoch(epoch,
         loss = criterion(outputs, targets)
         acc = calculate_accuracy(outputs, targets)
 
-        prec, rec, fscore = calculate_precision_and_recall(outputs, targets)
-        precs.update(prec, inputs.size(0))
-        recs.update(rec, inputs.size(0))
-        fscores.update(fscore, inputs.size(0))
+        prec, rec, fscore, counts = calculate_precision_and_recall(outputs, targets, class_idx, func_class_counts)
+
+        precs.update(prec, counts)
+        recs.update(rec, counts)
+        fscores.update(fscore, counts)
 
         losses.update(loss.item(), inputs.size(0))
         accuracies.update(acc, inputs.size(0))
@@ -88,9 +92,14 @@ def train_epoch(epoch,
     losses_avg = losses.avg
     accuracies_avg = accuracies.avg
 
-    precs_avg = precs.avg
-    recs_avg = recs.avg
-    fscores_avg = fscores.avg
+    precs_avg = precs.average()
+    recs_avg = recs.average()
+    fscores_avg = fscores.average()
+
+    # print("update")
+    # print(f"prec avg:{precs_avg}")
+    # print(f"recs_avg: {recs_avg}")
+    # print(f"fscores_avg: {fscores_avg}")
 
     epoch_logger.log({
         'epoch': epoch,
@@ -107,6 +116,6 @@ def train_epoch(epoch,
         tb_writer.add_scalar('Training/Accuracy per epoch', accuracies_avg, epoch)
         tb_writer.add_scalar('Training/Learning Rate per epoch', current_lr, epoch)
 
-        tb_writer.add_scalar('Training/Precision per epoch', precs_avg, epoch)
-        tb_writer.add_scalar('Training/Recall per epoch', recs_avg, epoch)
-        tb_writer.add_scalar('Training/F-Score per epoch', fscores_avg, epoch)
+        [tb_writer.add_scalar(f"Training/Precision for class {class_names[idx]} per epoch", precs_avg[idx], epoch) for idx in class_idx]
+        [tb_writer.add_scalar(f"Training/Recall for class {class_names[idx]} per epoch", recs_avg[idx], epoch) for idx in class_idx]
+        [tb_writer.add_scalar(f"Training/F-Score for class {class_names[idx]} per epoch", fscores_avg[idx], epoch) for idx in class_idx]

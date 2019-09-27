@@ -200,7 +200,7 @@ def get_train_utils(opt, model_parameters):
         scheduler = lr_scheduler.MultiStepLR(optimizer,
                                              opt.multistep_milestones)
 
-    return train_loader, train_logger, train_batch_logger, optimizer, scheduler
+    return train_loader, train_logger, train_batch_logger, optimizer, scheduler, training_data.class_names
 
 
 def get_val_utils(opt):
@@ -317,7 +317,7 @@ if __name__ == '__main__':
 
     if not opt.no_train:
         (train_loader, train_logger, train_batch_logger, optimizer,
-         scheduler) = get_train_utils(opt, parameters)
+         scheduler, class_names) = get_train_utils(opt, parameters)
     if not opt.no_val:
         val_loader, val_logger = get_val_utils(opt)
 
@@ -350,7 +350,7 @@ if __name__ == '__main__':
         if not opt.no_train:
             current_lr = get_lr(optimizer)
             train_epoch(i, train_loader, model, criterion, optimizer,
-                        opt.device, current_lr, train_logger,
+                        opt.device, current_lr, class_names, train_logger,
                         train_batch_logger, tb_writer)
 
             if i % opt.checkpoint == 0:
@@ -360,7 +360,7 @@ if __name__ == '__main__':
 
         if not opt.no_val:
             prev_val_loss = val_epoch(i, val_loader, model, criterion,
-                                      opt.device, val_logger, tb_writer)
+                                      opt.device, class_names, val_logger, tb_writer)
 
         if opt.lr_scheduler == 'multistep':
             scheduler.step()
