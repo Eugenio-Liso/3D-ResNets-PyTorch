@@ -1,6 +1,9 @@
 import json
+import os
 import random
+import socket
 import time
+from datetime import datetime
 from pathlib import Path
 
 import numpy as np
@@ -8,7 +11,7 @@ import torch
 import torchvision
 from torch.backends import cudnn
 from torch.nn import CrossEntropyLoss
-from torch.optim import SGD, lr_scheduler
+from torch.optim import SGD, Adam, lr_scheduler
 
 import inference
 from dataset import get_training_data, get_validation_data, get_inference_data
@@ -27,9 +30,6 @@ from training import train_epoch
 from utils import Logger, worker_init_fn, get_lr
 from validation import val_epoch
 from vidaug import augmentors as va
-import socket
-from datetime import datetime
-import os
 
 
 def json_serial(obj):
@@ -68,7 +68,6 @@ def get_opt():
 
 def resume(resume_path,
            arch,
-           begin_epoch,
            model,
            optimizer=None,
            scheduler=None):
@@ -184,12 +183,22 @@ def get_train_utils(opt, model_parameters):
         dampening = 0
     else:
         dampening = opt.dampening
-    optimizer = SGD(model_parameters,
-                    lr=opt.learning_rate,
-                    momentum=opt.momentum,
-                    dampening=dampening,
-                    weight_decay=opt.weight_decay,
-                    nesterov=opt.nesterov)
+
+    optimizer_chosen = opt.optimizer.lower()
+
+    if optimizer_chosen == 'sgd':
+        optimizer = SGD(model_parameters,
+                        lr=opt.learning_rate,
+                        momentum=opt.momentum,
+                        dampening=dampening,
+                        weight_decay=opt.weight_decay,
+                        nesterov=opt.nesterov)
+    elif optimizer_chosen == 'adam':
+        optimizer = Adam(model_parameters,
+                         lr=opt.learning_rate,
+                         amsgrad=opt.amsgrad)
+    else:
+        raise Exception("Optimizer not supported")
 
     assert opt.lr_scheduler in ['plateau', 'multistep']
     assert not (opt.lr_scheduler == 'plateau' and opt.no_val)
@@ -324,13 +333,12 @@ if __name__ == '__main__':
     if opt.resume_path is not None:
         if not opt.no_train:
             opt.begin_epoch, model, optimizer, scheduler = resume(
-                opt.resume_path, opt.arch, opt.begin_epoch, model, optimizer,
+                opt.resume_path, opt.arch, model, optimizer,
                 scheduler)
             if opt.overwrite_milestones:
                 scheduler.milestones = opt.multistep_milestones
         else:
-            opt.begin_epoch, model, _, _ = resume(opt.resume_path, opt.arch,
-                                                  opt.begin_epoch, model)
+            opt.begin_epoch, model, _, _ = resume(opt.resume_path, opt.arch, model)
 
     if opt.tensorboard:
         from torch.utils.tensorboard import SummaryWriter
@@ -339,7 +347,7 @@ if __name__ == '__main__':
             tb_writer = SummaryWriter(log_dir=log_dir_current_run)
         else:
             tb_writer = SummaryWriter(log_dir=log_dir_current_run,
-                                      purge_index=opt.begin_epoch)
+                                      purge_step=opt.begin_epoch)
     else:
         tb_writer = None
 

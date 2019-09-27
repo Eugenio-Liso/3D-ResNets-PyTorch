@@ -94,6 +94,8 @@ def parse_opts():
                         type=float,
                         help=('Initial learning rate'
                               '(divided by 10 while training by lr scheduler)'))
+    parser.add_argument('--amsgrad', action='store_true', help='If the variant AMSGRAD should be used. Applicable '
+                                                               'only to ADAM optimizer')
     parser.add_argument('--momentum', default=0.9, type=float, help='Momentum')
     parser.add_argument('--dampening',
                         default=0.0,
@@ -127,7 +129,7 @@ def parse_opts():
     parser.add_argument('--optimizer',
                         default='sgd',
                         type=str,
-                        help='Currently only support SGD')
+                        help='(SGD, ADAM)')
     parser.add_argument('--lr_scheduler',
                         default='multistep',
                         type=str,
