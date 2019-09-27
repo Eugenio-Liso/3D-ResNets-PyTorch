@@ -198,16 +198,18 @@ def get_train_utils(opt, model_parameters):
                          lr=opt.learning_rate,
                          amsgrad=opt.amsgrad)
     else:
-        raise Exception("Optimizer not supported")
+        raise Exception(f"Optimizer not supported: {optimizer_chosen}")
 
     assert opt.lr_scheduler in ['plateau', 'multistep']
     assert not (opt.lr_scheduler == 'plateau' and opt.no_val)
     if opt.lr_scheduler == 'plateau':
         scheduler = lr_scheduler.ReduceLROnPlateau(
             optimizer, 'min', patience=opt.plateau_patience)
-    else:
+    elif opt.lr_scheduler == 'multistep':
         scheduler = lr_scheduler.MultiStepLR(optimizer,
                                              opt.multistep_milestones)
+    else:
+        raise Exception(f"Learning rate scheduler not supported: {opt.lr_scheduler}")
 
     return train_loader, train_logger, train_batch_logger, optimizer, scheduler, training_data.class_names
 
