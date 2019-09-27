@@ -190,12 +190,13 @@ def get_train_utils(opt, model_parameters):
 
     assert opt.lr_scheduler in ['plateau', 'multistep']
     assert not (opt.lr_scheduler == 'plateau' and opt.no_val)
+    lr_decay = opt.lr_decay
     if opt.lr_scheduler == 'plateau':
         scheduler = lr_scheduler.ReduceLROnPlateau(
-            optimizer, 'min', patience=opt.plateau_patience)
+            optimizer, 'min', patience=opt.plateau_patience, factor=lr_decay)
     elif opt.lr_scheduler == 'multistep':
         scheduler = lr_scheduler.MultiStepLR(optimizer,
-                                             opt.multistep_milestones)
+                                             opt.multistep_milestones, gamma=lr_decay)
     else:
         raise Exception(f"Learning rate scheduler not supported: {opt.lr_scheduler}")
 

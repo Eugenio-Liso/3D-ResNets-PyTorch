@@ -146,9 +146,15 @@ def parse_opts():
     )
     parser.add_argument(
         '--plateau_patience',
-        default=10,
+        default=5,
         type=int,
         help='Patience of LR scheduler. See documentation of ReduceLROnPlateau.'
+    )
+    parser.add_argument(
+        '--lr_decay',
+        default=0.1,
+        type=float,
+        help='Multiplicative factor of learning rate decay.'
     )
     parser.add_argument('--batch_size',
                         type=int,
