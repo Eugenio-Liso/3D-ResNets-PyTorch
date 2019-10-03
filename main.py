@@ -391,9 +391,9 @@ if __name__ == '__main__':
         normalized_weights = list(map(lambda x: x / sum(inverse_weights), inverse_weights))
 
         # INVERSE FREQUENCY CLASS WEIGHTING
-        class_distribution = torch.FloatTensor(normalized_weights).cuda()
+        class_distribution_weights = torch.FloatTensor(normalized_weights).cuda()
 
-        criterion = CrossEntropyLoss(weight=class_distribution).to(opt.device)
+        criterion = CrossEntropyLoss(weight=class_distribution_weights).to(opt.device)
     else:
         raise Exception(f"Unsupported type of loss function: {loss_function_type}")
 
