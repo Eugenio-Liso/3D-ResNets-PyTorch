@@ -191,7 +191,9 @@ def get_train_utils(opt, model_parameters):
     assert opt.lr_scheduler in ['plateau', 'multistep']
     assert not (opt.lr_scheduler == 'plateau' and opt.no_val)
     lr_decay = opt.lr_decay
-    if opt.lr_scheduler == 'plateau':
+    if optimizer_chosen == 'adam':
+        scheduler = None
+    elif opt.lr_scheduler == 'plateau':
         scheduler = lr_scheduler.ReduceLROnPlateau(
             optimizer, 'min', patience=opt.plateau_patience, factor=lr_decay)
     elif opt.lr_scheduler == 'multistep':
@@ -272,12 +274,17 @@ def get_inference_utils(opt):
 
 
 def save_checkpoint(save_file_path, epoch, arch, model, optimizer, scheduler, log_dir_current_run):
+    if scheduler is None:
+        scheduler_info = None
+    else:
+        scheduler_info = scheduler.state_dict()
+
     save_states = {
         'epoch': epoch,
         'arch': arch,
         'state_dict': model.state_dict(),
         'optimizer': optimizer.state_dict(),
-        'scheduler': scheduler.state_dict(),
+        'scheduler': scheduler_info,
         'log_dir': log_dir_current_run
     }
     torch.save(save_states, save_file_path)
@@ -376,10 +383,12 @@ if __name__ == '__main__':
             prev_val_loss = val_epoch(i, val_loader, model, criterion,
                                       opt.device, class_names, val_logger, tb_writer)
 
-        if opt.lr_scheduler == 'multistep':
-            scheduler.step()
-        elif opt.lr_scheduler == 'plateau':
-            scheduler.step(prev_val_loss)
+        # Skipping learning rate adjust if it is not useful
+        if opt.optimizer.lower() != 'adam':
+            if opt.lr_scheduler == 'multistep':
+                scheduler.step()
+            elif opt.lr_scheduler == 'plateau':
+                scheduler.step(prev_val_loss)
 
         if tb_writer is not None:
             for writer in tb_writer.all_writers.values():
