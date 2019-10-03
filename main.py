@@ -382,9 +382,16 @@ if __name__ == '__main__':
                 target_class = annotations[i]['label']
                 class_distributions[target_class] += 1
 
-        num_of_samples_per_class = list(map(lambda x: x / n_videos, class_distributions.values()))
+        for value in class_distributions.values():
+            if value == 0:
+                raise Exception("Cannot have a class with zero instances")
+
         # Converts to list the values of the dictionary
-        class_distribution = torch.tensor(num_of_samples_per_class)
+        inverse_weights = list(map(lambda x: 1 / x, class_distributions.values()))
+        normalized_weights = list(map(lambda x: x / sum(inverse_weights), inverse_weights))
+
+        # INVERSE FREQUENCY CLASS WEIGHTING
+        class_distribution = torch.FloatTensor(normalized_weights).cuda()
 
         criterion = CrossEntropyLoss(weight=class_distribution).to(opt.device)
     else:
