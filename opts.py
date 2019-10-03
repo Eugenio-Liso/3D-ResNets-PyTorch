@@ -277,6 +277,11 @@ def parse_opts():
                         type=int,
                         default=3,
                         help='Specifies the number of the applied filters if the augmentation_mode is set to someOf')
+    parser.add_argument('--loss_function_type',
+                        type=str,
+                        default='plain',
+                        help='Specifies the type of loss function to use. Plain means that no weights are applied on '
+                             'CrossEntropy. Weighted means that the class distribution will be used when calculating loss')
     args = parser.parse_args()
 
     return args

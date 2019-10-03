@@ -30,6 +30,7 @@ from training import train_epoch
 from utils import Logger, worker_init_fn, get_lr, serialize
 from validation import val_epoch
 from vidaug import augmentors as va
+from datasets.videodataset import get_class_labels, get_video_ids_and_annotations
 
 
 def json_serial(obj):
@@ -311,8 +312,6 @@ if __name__ == '__main__':
 
     model, parameters = generate_model(opt)
     print(model)
-    # Qui si puo' cambiare la LOSS
-    criterion = CrossEntropyLoss().to(opt.device)
 
     if not opt.no_train:
         (train_loader, optimizer, scheduler, class_names) = get_train_utils(opt, parameters)
@@ -364,8 +363,34 @@ if __name__ == '__main__':
     else:
         tb_writer = None
 
-    prev_val_loss = None
+    loss_function_type = opt.loss_function_type.lower()
 
+    if loss_function_type == 'plain':
+        criterion = CrossEntropyLoss().to(opt.device)
+    elif loss_function_type == 'weighted':
+        annotation_path = opt.annotation_path
+
+        with annotation_path.open('r') as f:
+            data = json.load(f)
+        video_ids, annotations = get_video_ids_and_annotations(data, 'training')
+        class_to_idx = get_class_labels(data)
+
+        n_videos = len(video_ids)
+        class_distributions = dict.fromkeys(class_to_idx, 0)
+        for i in range(n_videos):
+            if 'label' in annotations[i]:
+                target_class = annotations[i]['label']
+                class_distributions[target_class] += 1
+
+        num_of_samples_per_class = list(map(lambda x: x / n_videos, class_distributions.values()))
+        # Converts to list the values of the dictionary
+        class_distribution = torch.tensor(num_of_samples_per_class)
+
+        criterion = CrossEntropyLoss(weight=class_distribution).to(opt.device)
+    else:
+        raise Exception(f"Unsupported type of loss function: {loss_function_type}")
+
+    prev_val_loss = None
     start_time_training = time.time()
     for i in range(opt.begin_epoch, opt.n_epochs + 1):
         if not opt.no_train:
