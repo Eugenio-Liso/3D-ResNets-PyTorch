@@ -126,6 +126,7 @@ def worker_init_fn(worker_id):
 
 
 def get_lr(optimizer):
+    # CAVEAT: If using ADAM, the learning rate will be always the same (correctly), and you will get on the plot the same value.
     lrs = []
     for param_group in optimizer.param_groups:
         lr = float(param_group['lr'])
