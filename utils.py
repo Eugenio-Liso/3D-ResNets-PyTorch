@@ -1,34 +1,11 @@
 import csv
 import random
 from functools import partialmethod
-
-import torch
-import numpy as np
-from sklearn.metrics import precision_recall_fscore_support
 from pathlib import Path
+
+import numpy as np
+import torch
 from torch import device
-# Removes useless warning when precision, recall or fscore are zero
-import warnings
-
-warnings.filterwarnings('ignore', message='(.*)Precision and F-score are ill-defined(.*)')
-warnings.filterwarnings('ignore', message='(.*)Recall and F-score are ill-defined(.*)')
-
-
-class AverageMeterNumPyArray(object):
-
-    def reset(self, size):
-        self.np_array = np.zeros(size)
-        self.count = np.zeros(size)
-
-    def __init__(self, size):
-        self.reset(size)
-
-    def update(self, val, counts):
-        self.np_array += val
-        self.count += counts
-
-    def average(self):
-        return np.divide(self.np_array, self.count, out=np.zeros_like(self.np_array), where=self.count != 0)
 
 
 class AverageMeter(object):
@@ -87,32 +64,14 @@ def calculate_accuracy(outputs, targets):
 def class_counts(x): return 1 if x > 0 else 0
 
 
-def calculate_precision_and_recall(outputs, targets, class_idx, func_class_counts):
+def ground_truth_and_predictions(outputs, targets):
     with torch.no_grad():
         _, pred = outputs.topk(1, 1, largest=True, sorted=True)
 
         ground_truth = targets.view(-1, 1).cpu().numpy()
         predictions = pred.cpu().numpy()
 
-        # This is useful to mean the results after the batch completes
-        # all_classes = np.append(ground_truth, predictions)
-        # count_vector = np.bincount(all_classes)
-        # zero_pad = labels_size - len(count_vector)
-        # padded_counts = np.pad(count_vector, (0, zero_pad), 'constant')
-
-        precision, recall, fscore, support = precision_recall_fscore_support(ground_truth, predictions,
-                                                                             labels=class_idx)
-
-        # print(f"prec: {precision} - recall: {recall} - targets: {targets} - pred: {pred}")
-        class_counts_for_mean = func_class_counts(support)
-
-        # print(f"prec: {precision}")
-        # print(f"rec: {recall}")
-        # print(f"fscore: {fscore}")
-        # print(f"support: {support}")
-        # print(f"class_counts: {class_counts_for_mean}")
-
-        return precision, recall, fscore, class_counts_for_mean
+        return ground_truth, predictions
 
 
 def worker_init_fn(worker_id):

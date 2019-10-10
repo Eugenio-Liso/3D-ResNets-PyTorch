@@ -335,7 +335,7 @@ if __name__ == '__main__':
         train_logger = Logger(opt.result_path / 'train.log',
                               ['epoch', 'loss', 'acc', 'lr', 'prec', 'rec', 'fscore'])
         train_batch_logger = Logger(opt.result_path / 'train_batch.log',
-                                    ['epoch', 'batch', 'iter', 'loss', 'acc', 'lr', 'prec', 'rec', 'fscore'])
+                                    ['epoch', 'batch', 'iter', 'loss', 'acc', 'lr'])
     if not opt.no_val:
         val_logger = Logger(opt.result_path / 'val.log', ['epoch', 'loss', 'acc', 'prec', 'rec', 'fscore'])
 

@@ -1,8 +1,13 @@
 import time
+# Removes useless warning when precision, recall or fscore are zero
+import warnings
 
-import numpy as np
+from sklearn.metrics import precision_recall_fscore_support
 
-from utils import AverageMeter, AverageMeterNumPyArray, calculate_accuracy, calculate_precision_and_recall, class_counts
+from utils import AverageMeter, calculate_accuracy, ground_truth_and_predictions
+
+warnings.filterwarnings('ignore', message='(.*)Precision and F-score are ill-defined(.*)')
+warnings.filterwarnings('ignore', message='(.*)Recall and F-score are ill-defined(.*)')
 
 
 def train_epoch(epoch,
@@ -33,11 +38,10 @@ def train_epoch(epoch,
     accuracies = AverageMeter()
 
     class_size = len(class_names)
-    precs = AverageMeterNumPyArray(class_size)
-    recs = AverageMeterNumPyArray(class_size)
-    fscores = AverageMeterNumPyArray(class_size)
     class_idx = list(range(0, class_size))
-    func_class_counts = np.vectorize(class_counts)
+
+    ground_truth_labels = []
+    predicted_labels = []
 
     end_time = time.time()
     for i, (inputs, targets) in enumerate(data_loader):
@@ -48,11 +52,10 @@ def train_epoch(epoch,
         loss = criterion(outputs, targets)
         acc = calculate_accuracy(outputs, targets)
 
-        prec, rec, fscore, counts = calculate_precision_and_recall(outputs, targets, class_idx, func_class_counts)
+        ground_truth, predictions = ground_truth_and_predictions(outputs, targets)
 
-        precs.update(prec, counts)
-        recs.update(rec, counts)
-        fscores.update(fscore, counts)
+        ground_truth_labels.extend(ground_truth)
+        predicted_labels.extend(predictions)
 
         losses.update(loss.item(), inputs.size(0))
         accuracies.update(acc, inputs.size(0))
@@ -69,10 +72,7 @@ def train_epoch(epoch,
             'iter': (epoch - 1) * len(data_loader) + (i + 1),
             'loss': losses.val,
             'acc': accuracies.val,
-            'lr': current_lr,
-            'prec': prec,
-            'rec': rec,
-            'fscore': fscore
+            'lr': current_lr
         })
 
         print('Epoch: [{0}][{1}/{2}]\t'
@@ -92,9 +92,10 @@ def train_epoch(epoch,
     losses_avg = losses.avg
     accuracies_avg = accuracies.avg
 
-    precs_avg = precs.average()
-    recs_avg = recs.average()
-    fscores_avg = fscores.average()
+    precision_epoch, recall_epoch, fscore_epoch, _ = \
+        precision_recall_fscore_support(ground_truth_labels,
+                                        predicted_labels,
+                                        labels=class_idx)
 
     # print("update")
     # print(f"prec avg:{precs_avg}")
@@ -106,9 +107,9 @@ def train_epoch(epoch,
         'loss': losses_avg,
         'acc': accuracies_avg,
         'lr': current_lr,
-        'prec': precs_avg,
-        'rec': recs_avg,
-        'fscore': fscores_avg
+        'prec': precision_epoch,
+        'rec': recall_epoch,
+        'fscore': fscore_epoch
     })
 
     if tb_writer is not None:
@@ -116,6 +117,9 @@ def train_epoch(epoch,
         tb_writer.add_scalar('Training/Accuracy per epoch', accuracies_avg, epoch)
         tb_writer.add_scalar('Training/Learning Rate per epoch', current_lr, epoch)
 
-        [tb_writer.add_scalar(f"Training/Precision for class {class_names[idx]} per epoch", precs_avg[idx], epoch) for idx in class_idx]
-        [tb_writer.add_scalar(f"Training/Recall for class {class_names[idx]} per epoch", recs_avg[idx], epoch) for idx in class_idx]
-        [tb_writer.add_scalar(f"Training/F-Score for class {class_names[idx]} per epoch", fscores_avg[idx], epoch) for idx in class_idx]
+        [tb_writer.add_scalar(f"Training/Precision for class {class_names[idx]} per epoch", precision_epoch[idx], epoch) for
+         idx in class_idx]
+        [tb_writer.add_scalar(f"Training/Recall for class {class_names[idx]} per epoch", recall_epoch[idx], epoch) for idx
+         in class_idx]
+        [tb_writer.add_scalar(f"Training/F-Score for class {class_names[idx]} per epoch", fscore_epoch[idx], epoch) for
+         idx in class_idx]
