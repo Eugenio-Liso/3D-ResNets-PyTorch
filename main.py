@@ -227,9 +227,8 @@ def get_val_utils(opt):
         opt.video_path, opt.annotation_path, opt.dataset, opt.file_type,
         spatial_transform, temporal_transform)
     val_loader = torch.utils.data.DataLoader(validation_data,
-                                             batch_size=opt.batch_size,
-                                             # batch_size=(opt.batch_size //
-                                             #             opt.n_val_samples),
+                                             batch_size=(opt.batch_size //
+                                                         opt.n_val_samples),
                                              shuffle=False,
                                              num_workers=opt.n_threads,
                                              pin_memory=True,
