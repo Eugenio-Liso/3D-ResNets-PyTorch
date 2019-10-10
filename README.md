@@ -4,7 +4,7 @@
 
 ## Requirements
 
-* [PyTorch](http://pytorch.org/)
+* A conda environment with Python 3.7.x
 
 ```bash
 #MAKE SURE YOU HAVE CUDA 9.0 AND A NVIDIA DRIVER >= 384.81 
