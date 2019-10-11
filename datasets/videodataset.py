@@ -72,7 +72,7 @@ class VideoDataset(data.Dataset):
         dataset = []
         for i in range(n_videos):
             if i % (n_videos // 5) == 0:
-                print('dataset loading [{}/{}]'.format(i, len(video_ids)))
+                print('Dataset loading [{}/{}]'.format(i, len(video_ids)))
 
             if 'label' in annotations[i]:
                 label = annotations[i]['label']
