@@ -67,13 +67,15 @@ def generate_split(input_args):
     video_path_validation = input_args.video_path_validation
     video_path_trainval = args.video_path_trainval
     augmented_tagged_unsplitted_data = args.augmented_tagged_unsplitted_data
+    class_names_list = args.class_names_list
 
     if augmented_tagged_unsplitted_data:
         result_video_and_subset_aug, target_classes_aug, video_with_label_aug = \
             parse_subset_data(seed,
                               split_size,
                               args.frames_dir,  # Changing the input directory for augmented data
-                              None)  # Unused
+                              None,
+                              class_names_list)  # Unused
 
         return video_with_label_aug, \
                result_video_and_subset_aug, \
@@ -83,10 +85,12 @@ def generate_split(input_args):
         result_video_and_subset_train, target_classes_train, video_with_label_train = parse_subset_data(seed,
                                                                                                         split_size,
                                                                                                         video_path_train,
-                                                                                                        True)
+                                                                                                        True,
+                                                                                                        class_names_list)
         result_video_and_subset_val, target_classes_val, video_with_label_val = parse_subset_data(seed, split_size,
                                                                                                   video_path_validation,
-                                                                                                  False)
+                                                                                                  False,
+                                                                                                  class_names_list)
         assert len(
             target_classes_train.difference(target_classes_val)) == 0, "The classes should be the same in training and " \
                                                                        "validation set "
@@ -99,7 +103,8 @@ def generate_split(input_args):
             parse_subset_data(seed,
                               split_size,
                               video_path_trainval,
-                              None)  # Unused
+                              None,
+                              class_names_list)  # Unused
 
         return video_with_label_trainval, \
                result_video_and_subset_trainval, \
@@ -112,15 +117,21 @@ def generate_split(input_args):
     # get labels
 
 
-def parse_subset_data(seed, split_size, video_path, is_training):
+def parse_subset_data(seed, split_size, video_path, is_training, class_names_list):
     random.seed(seed)
     classes_as_folders = os.listdir(video_path)
     video_with_label = {}
     target_classes = set()
 
+    if class_names_list is not None:
+        with open(class_names_list, 'r') as f:
+            for row in f:
+                target_classes.add(row[:-1])
+
     result_video_and_subset = []
     for target_class in classes_as_folders:
-        target_classes.add(target_class)
+        if class_names_list is None:
+            target_classes.add(target_class)
         input_video_path = os.path.join(video_path, target_class)
         input_videos = os.listdir(input_video_path)
 
@@ -213,7 +224,10 @@ if __name__ == '__main__':
                         action='store_true',
                         help='This setting should be used ONLY when the input data is augmented, '
                              'manually tagged or WITHOUT any --video_path_* parameter')
-
+    parser.add_argument('--class_names_list',
+                        default=None,
+                        type=Path,
+                        help='If specified, the target labels will be replaced by the content of this file')
     args = parser.parse_args()
 
     video_path_train = args.video_path_training
