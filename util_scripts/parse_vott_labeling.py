@@ -102,4 +102,6 @@ if __name__ == '__main__':
                 'videopath': input_video_path,
                 'outpath': output_frames_path}
 
+            print(f'Extracting frames for video {input_video_path} to {output_frames_subdir}')
+
             subprocess.call(ffmpeg_command, shell=True)
