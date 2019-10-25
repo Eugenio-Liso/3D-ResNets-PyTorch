@@ -33,11 +33,15 @@ if __name__ == '__main__':
     parser.add_argument('--output_frames_dir', default=None, type=Path, required=True,
                         help='Directory path of the output frames, according to the input CSV containing video '
                              'labelings')
+    parser.add_argument('--output_trimmed_video_dir', default=None, type=Path, required=True,
+                        help='If defined, in this directory, trimmed videos will be put')
+
     args = parser.parse_args()
 
     vott_csv = args.vott_csv
     output_frames_dir = args.output_frames_dir
     input_video_dir = args.input_video_dir
+    output_trimmed_video_dir = args.output_trimmed_video_dir
 
     with open(vott_csv, 'r') as loaded_vott_csv:
         csvreader = csv.reader(loaded_vott_csv, delimiter=',')
@@ -66,6 +70,7 @@ if __name__ == '__main__':
                     "record, indicating the end of the clip")
 
             num_of_dots = video_name.count('.')
+            video_format = video_name.split('.')[-1]
 
             if num_of_dots == 0:
                 raise Exception("Video {} should have an extension.".format(video_name))
@@ -84,9 +89,10 @@ if __name__ == '__main__':
             start_seconds = hou_min_sec(float(image_info[1].split('=')[1]) * 1000)
             end_seconds = hou_min_sec(float(dummy_record[0].split('#')[1].split('=')[1]) * 1000)
 
+            new_video_id = f"{video_name.split('.')[0]}_{start_seconds.replace('.', '_')}_{end_seconds.replace('.', '_')}"
             output_frames_subdir = os.path.join(output_frames_dir,
                                                 target_class,
-                                                f"{video_name.split('.')[0]}_{start_seconds.replace('.', '_')}_{end_seconds.replace('.', '_')}")
+                                                new_video_id)
             output_frames_path = os.path.join(output_frames_subdir, "image_%05d.jpg")
 
             if os.path.exists(output_frames_subdir):
@@ -103,5 +109,9 @@ if __name__ == '__main__':
                 'outpath': output_frames_path}
 
             print(f'Extracting frames for video {input_video_path} to {output_frames_subdir}')
-
             subprocess.call(ffmpeg_command, shell=True)
+
+            if output_trimmed_video_dir:
+                print(f'Extracting trimmed video from {input_video_path}')
+                trim_video_command = f'ffmpeg -i {input_video_path} -ss {start_seconds} -to {end_seconds} {output_trimmed_video_dir}/{new_video_id}.{video_format}'
+                subprocess.call(trim_video_command, shell=True)
