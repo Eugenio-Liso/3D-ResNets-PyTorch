@@ -5,7 +5,7 @@ import random
 from pathlib import Path
 
 import pandas as pd
-from utils_frames import get_n_frames
+from utils_frames import get_n_frames, get_fps
 
 
 def convert_splits_to_dict(split_file_path, video_with_label, augmented_data):
@@ -39,7 +39,8 @@ def convert_splits_to_dict(split_file_path, video_with_label, augmented_data):
     return database
 
 
-def convert_dataset_to_json(output_splits_path, frames_dir, video_with_label, target_classes, augmented_data):
+def convert_dataset_to_json(output_splits_path, input_dir, video_with_label, target_classes, augmented_data,
+                            input_as_frames):
     database = convert_splits_to_dict(output_splits_path, video_with_label, augmented_data)
 
     dst_data = {'labels': sorted(list(target_classes)), 'database': {}}
@@ -51,8 +52,13 @@ def convert_dataset_to_json(output_splits_path, frames_dir, video_with_label, ta
         else:
             label = 'test'
 
-        video_path = frames_dir / label / k
-        n_frames = get_n_frames(video_path)
+        video_path = input_dir / label / k
+
+        if input_as_frames:
+            n_frames = get_n_frames(video_path)
+        else:
+            n_frames = get_fps(video_path)
+
         v['annotations']['segment'] = (1, n_frames + 1)
 
     return dst_data
@@ -69,11 +75,19 @@ def generate_split(input_args):
     augmented_tagged_unsplitted_data = args.augmented_tagged_unsplitted_data
     class_names_list = args.class_names_list
 
+    frames_dir = args.frames_dir
+    videos_dir = args.videos_dir
+
+    if frames_dir:
+        input_dir = frames_dir
+    else:
+        input_dir = videos_dir
+
     if augmented_tagged_unsplitted_data:
         result_video_and_subset_aug, target_classes_aug, video_with_label_aug = \
             parse_subset_data(seed,
                               split_size,
-                              args.frames_dir,  # Changing the input directory for augmented data
+                              input_dir,  # Changing the input directory for augmented data
                               None,
                               class_names_list)  # Unused
 
@@ -220,6 +234,10 @@ if __name__ == '__main__':
                         default=None,
                         type=Path,
                         help='Directory path of the video frames')
+    parser.add_argument('--videos_dir',
+                        default=None,
+                        type=Path,
+                        help='Directory path of the videos')
     parser.add_argument('--augmented_tagged_unsplitted_data',
                         action='store_true',
                         help='This setting should be used ONLY when the input data is augmented, '
@@ -253,19 +271,28 @@ if __name__ == '__main__':
             split_file.write(f"{split}\n")
 
     frames_dir = args.frames_dir
+    videos_dir = args.videos_dir
+
+    if frames_dir:
+        input_dir = frames_dir
+        input_as_frames = True
+    else:
+        input_dir = videos_dir
+        input_as_frames = False
+
     output_annotations_path = args.output_annotations_path
 
     if video_path_train and video_path_validation:
-        json_training = convert_dataset_to_json(output_splits_path, frames_dir, video_with_label,
-                                                target_classes, augmented_tagged_unsplitted_data)
+        json_training = convert_dataset_to_json(output_splits_path, input_dir, video_with_label,
+                                                target_classes, augmented_tagged_unsplitted_data, input_as_frames)
 
-        json_validation = convert_dataset_to_json(output_splits_path, frames_dir, video_with_label,
-                                                  target_classes, augmented_tagged_unsplitted_data)
+        json_validation = convert_dataset_to_json(output_splits_path, input_dir, video_with_label,
+                                                  target_classes, augmented_tagged_unsplitted_data, input_as_frames)
         with output_annotations_path.open('w+') as dst_file:
             data_to_write = {**json_training, **json_validation}
             json.dump(data_to_write, dst_file, indent=4)
     else:
-        json_trainval = convert_dataset_to_json(output_splits_path, frames_dir, video_with_label,
-                                                target_classes, augmented_tagged_unsplitted_data)
+        json_trainval = convert_dataset_to_json(output_splits_path, input_dir, video_with_label,
+                                                target_classes, augmented_tagged_unsplitted_data, input_as_frames)
         with output_annotations_path.open('w+') as dst_file:
             json.dump(json_trainval, dst_file, indent=4)
