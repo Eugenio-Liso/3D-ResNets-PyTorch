@@ -206,7 +206,8 @@ if __name__ == '__main__':
                         help='Seed to be used')
     parser.add_argument('--split_size_train',
                         type=float,
-                        help='Determines the split between the training and validation sets')
+                        help='Determines the split between the training and validation sets. Use -1 if you want videos to '
+                             'form a validation set only.')
     parser.add_argument('--video_path_trainval',
                         default=None,
                         type=Path,
