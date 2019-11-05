@@ -116,7 +116,7 @@ def get_train_utils(opt, model_parameters):
         augmentation_someOf_num_filters = opt.augmentation_someOf_num_filters
         augment_filters = va.SomeOf(list_of_filters, augmentation_someOf_num_filters)
     else:
-        raise Exception(f"Invalid type of aumgentation: {augmentation_mode}")
+        raise Exception(f"Invalid type of augmentation: {augmentation_mode}")
 
     spatial_transform = []
     if opt.train_crop == 'random':
