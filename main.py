@@ -100,8 +100,8 @@ def get_train_utils(opt, model_parameters):
         va.HorizontalFlip(),
         va.GaussianBlur(sigma=1),
         va.ElasticTransformation(),
-        va.Add(value=10),
-        va.Multiply(value=2),
+        va.Add(value=random.randint(-255, 255)),
+        va.Multiply(value=random.uniform(0.5, 1.5)),
         va.Salt(),
         va.Pepper()
     ]
